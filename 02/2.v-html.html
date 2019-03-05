@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>V-HTML</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <span v-html="rhtml" ></span>
+        <p>{{ rhtml.split('').reverse().join('') }}</p>
+        <p>{{ ok ? 'YES' : 'NO' }}</p>
+    </div>
+
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            rhtml: "<i style='font-size: 30px'>年少有为！！！</i>",
+            ok: true
+        }
+    });
+
+</script>
+</body>
+</html>

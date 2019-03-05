@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Once</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <span v-once >This will never change: {{ msg }}</span>
+    </div>
+
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            msg: "年少有为！！！"
+        }
+    });
+    // v-once 当数据改变时，插值处的内容不会更新，只有更新一次
+    vm.msg="而立之年，有所作为";
+</script>
+</body>
+</html>

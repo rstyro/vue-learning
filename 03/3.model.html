@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>model 绑定</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+
+    </style>
+</head>
+<body >
+<div id="app">
+    <p>text：{{text}}</p>
+    <textarea v-model="text" cols="50" rows="10" placeholder="随便输一点"></textarea>
+
+    <br>
+    <input type="radio" name="sex" v-model="sex" value="男">男<br>
+    <input type="radio" name="sex" v-model="sex" value="女">女<br>
+    <label>性别：{{sex}}</label>
+    <br>
+
+    <br><br><br>
+    <select v-model="selected">
+        <option v-for="item in list" v-bind:value="item">{{item}}</option>
+    </select>
+    <span>selected：{{selected}}</span>
+    <br>
+
+    <br><br><br><br><br>
+    复选框：<input type="checkbox" id="checkbox" v-model="checked">
+    <label>{{ checked }}</label>
+
+    <br><br><br><br><br>
+    美女：<input type="checkbox" value="美女" v-model="checkeds"><br>
+    财富：<input type="checkbox" value="财富" v-model="checkeds"><br>
+    长生：<input type="checkbox" value="长生" v-model="checkeds"><br>
+    权利：<input type="checkbox" value="权利" v-model="checkeds"><br>
+
+    <br>
+    <label>您选择了：{{ checkeds }}</label>
+</div>
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            text: "",
+            sex: "",
+            selected: "",
+            list:["a","b","c","d","e","f","g"],
+            checked: false,
+            checkeds:[]
+        }
+    });
+
+</script>
+</body>
+</html>

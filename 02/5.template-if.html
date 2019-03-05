@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../dist/vue.min.js"></script>
+</head>
+<body >
+<div id="body">
+    <h1 v-if="ok">Yes</h1>
+    <h1 v-else>No</h1>
+
+    <template v-if="ok">
+        <h1>Title</h1>
+        <p>Paragraph 1</p>
+        <p>Paragraph 2</p>
+    </template>
+
+    <h1 v-show="ok">Hello!</h1>
+
+
+    <ul >
+        <template v-for="(item,index) of obj">
+            <li>{{item.age}} {{item.alias}},{{index}}</li>
+        </template>
+    </ul>
+</div>
+<script>
+    var vm = new Vue({
+        el:"#body",
+        data:{
+            ok: true,
+            obj:[{age:"不到周岁", alias:"襁褓"},
+                {age:"2-3岁", alias:"孩提"},
+                {age:"8岁", alias:"龆年"},
+                {age:"13~15岁", alias:"舞勺之年"},
+                {age:"15~20岁", alias:"舞象之年"},
+                {age:"30岁", alias:"而立之年"},
+                {age:"40岁", alias:"不惑之年"},
+                {age:"50岁", alias:"知命之年"},
+                {age:"60岁", alias:"杖乡之年"},
+                {age:"70岁", alias:"致事之年"},
+                {age:"80岁", alias:"耄耋之年"},
+                {age:"90岁", alias:"鲐背之年"},
+                {age:"100岁以后", alias:"不老之年"}
+                ]
+        }
+    });
+
+</script>
+</body>
+</html>

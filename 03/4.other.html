@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>修饰符</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+
+    </style>
+</head>
+<body >
+<div id="app">
+    <!-- 在 "change" 而不是 "input" 事件中更新 -->
+    <input v-model.lazy="msg" value="msg" ><br>
+    <label>输入内容：{{msg}}</label><br>
+    <input v-model.number="age" type="number"><br>
+    <input v-model.trim="msg" placeholder="去掉前后空格"><br>
+</div>
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            msg: "",
+            age:1
+        }
+    });
+
+</script>
+</body>
+</html>

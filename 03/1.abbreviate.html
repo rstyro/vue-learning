@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>缩写</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+        .default{
+            background: aliceblue;
+        }
+        .active{
+            color: green;
+        }
+        .error{
+            color: red;
+        }
+    </style>
+</head>
+<body >
+<div id="app">
+    <div :title="tip">鼠标移上来</div>
+    <button @click="alert">点击</button>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <button @click="count += 1">点击+1</button>
+    <p>点击次数加1：{{count}}</p>
+</div>
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            ok: true,
+            tip: "这是一个缩写的写法",
+            count:0
+        },
+        methods:{
+            alert: function(){
+                alert("缩写 缩写 缩写 缩写 缩写");
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

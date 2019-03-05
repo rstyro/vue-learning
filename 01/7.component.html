@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <ol>
+            <fruit-item v-for="fruit in fruits" v-bind:item="fruit"></fruit-item>
+        </ol>
+    </div>
+<script>
+    Vue.component("fruit-item",{
+        props:["item"],
+        template: "<li>{{item.cn_name}}-->{{item.en_name}}</li>"
+    });
+    var app = new Vue({
+        el:"#app",
+        data:{
+            fruits:[{cn_name:"苹果",en_name:"apple"},
+                {cn_name:"梨",en_name:"pear"},
+                {cn_name:"杏",en_name:"apricot"},
+                {cn_name:"桃",en_name:"peach"},
+                {cn_name:"葡萄",en_name:"grape"}
+            ]
+        }
+    })
+    app.fruits.push({cn_name:"西红柿",en_name:"Tomato"});
+</script>
+</body>
+</html>

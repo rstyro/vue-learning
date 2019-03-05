@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+    <script src="../dist/vue.min.js"></script>
+</head>
+<body>
+    <div id="app2" v-bind:title="message" >你还要我怎样 要怎样，你突然来的短信就够我悲伤</div>
+<script>
+    var app = new Vue({
+        el:"#app2",
+        data:{
+            message:"薛之谦的歌词，v-bind 绑定的是DOM 元素的属性。"
+        }
+    })
+</script>
+</body>
+</html>

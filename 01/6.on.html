@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div v-bind:title="descript" >你还要我怎样 要怎样，你突然来的短信就够我悲伤</div>
+    <br>
+    <button v-on:click="reverseMessage" >{{message}}</button>
+</div>
+<script>
+    var app = new Vue({
+        el:"#app",
+        data:{
+            descript:"薛之谦的歌词，v-bind 绑定的是DOM 元素的属性",
+            message: "你是年少的欢喜"
+        },
+        methods:{
+            reverseMessage:function () {
+                this.message=this.message.split('').reverse().join('');
+            }
+        }
+    })
+</script>
+</body>
+</html>

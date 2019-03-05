@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+    <script src="../dist/vue.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <ul >
+            <li v-for="item in items">{{item}}</li>
+        </ul>
+
+        <ul >
+            <li v-for="item in obj">{{item.age}}</li>
+        </ul>
+    </div>
+
+<script>
+    var app = new Vue({
+        el:"#app",
+        data:{
+            items:["襁褓","孩提","龆年","舞勺之年","舞象之年","而立之年","不惑之年","知命之年","杖乡之年","致事之年","耄耋之年","鲐背之年","不老之年"],
+            obj:[{age:"不到周岁", alias:"襁褓"},
+                {age:"2-3岁", alias:"孩提"},
+                {age:"8岁", alias:"龆年"},
+                {age:"13~15岁", alias:"舞勺之年"},
+                {age:"15~20岁", alias:"舞象之年"},
+                {age:"30岁", alias:"而立之年"},
+                {age:"40岁", alias:"不惑之年"},
+                {age:"50岁", alias:"知命之年"},
+                {age:"60岁", alias:"杖乡之年"},
+                {age:"70岁", alias:"致事之年"},
+                {age:"80岁", alias:"耄耋之年"},
+                {age:"90岁", alias:"鲐背之年"},
+                {age:"想死都死不了", alias:"不老之年"},
+            ]
+        }
+    });
+    app.obj.push({age:"这是新添加的",alias:"new add"});
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>点击事件</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+        .default{
+            background: aliceblue;
+        }
+        .active{
+            color: green;
+        }
+        .error{
+            color: red;
+        }
+    </style>
+</head>
+<body >
+<div id="app">
+    <button @click="eventClick">可以获得DOM原生的事件</button>
+    <button @click="say('hi')">Say hi</button>
+    <button @click="say2('what',$event)">Say what</button>
+</div>
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            name: "vue.js",
+            count:0
+        },
+        methods:{
+            eventClick:function(event){
+                // `this` 在方法里指当前 Vue 实例
+                alert('Hello ' + this.name + '!')
+                // `event` 是原生 DOM 事件
+                alert(event.target.tagName);
+            },
+            say: function (message) {
+                alert(message)
+            },
+            say2: function (message,event) {
+                alert(event.target.innerText);
+                console.log("event",event);
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

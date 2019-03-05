@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>V-STYLE-CLASS</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+            text-align: center;
+        }
+        .active{
+            color: green;
+            background: aliceblue;
+        }
+        .error{
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <ol>
+            <li>苹果</li>
+            <li v-bind:class="classObject" >橘子</li>
+            <li>香蕉</li>
+            <li class="error" v-bind:class="classObject">西红柿</li>
+        </ol>
+    </div>
+
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            classObject: {
+                active: true,
+                error: false
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

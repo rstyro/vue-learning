@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>Vue.component</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+        .default{
+            background: aliceblue;
+        }
+        .active{
+            color: green;
+        }
+        .error{
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <ol>
+            <li class="default">苹果</li>
+            <li class="default"  v-bind:style="mystyle">橘子</li>
+            <li class="default">香蕉</li>
+            <fruit-item class="default" ></fruit-item>
+        </ol>
+    </div>
+<script>
+    Vue.component("fruit-item",{
+        template: "<li class='active'>葡萄</li>"
+    });
+
+    var app = new Vue({
+        el:"#app",
+        data:{
+            mystyle:{
+                color:"#FF8809",
+                background: 'aliceblue'
+            }
+        }
+    })
+</script>
+</body>
+</html>
