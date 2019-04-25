@@ -15,13 +15,19 @@
 </head>
 <body >
 <div id="app">
-    <button @click="getApiData">点击得到数据</button>
+    <button @click="getApiData">Get请求</button> <button @click="postRequest">POST请求</button>
     <div v-for="item in result">
         <h3>{{item.title}}</h3><i style="color: #ccc;">{{item.authors}}</i>
         <p>{{item.content}}</p>
         <br>
         <br>
         <br>
+    </div>
+
+
+    <div v-for="item in novels">
+        <p>{{item.bookname}}</p>
+        <p>{{item.book_info}}</p>
     </div>
 </div>
 <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
@@ -31,7 +37,8 @@
             el:'#app',
             data:{
                 msg:'Hello World!',
-                result:[]
+                result:[],
+                novels:[]
             },
             methods:{
                 getApiData:function(){
@@ -40,9 +47,20 @@
                         console.log("res:",res.body);
                         var json = JSON.stringify(res.body);
                         console.log("json:",json);
+                        this.novels=[];
                         this.result = res.body.result;
                     },function(){
                         console.log('请求失败处理');
+                    });
+                },
+                postRequest:function(){
+                    //发送 post 请求
+                    this.$http.post('https://www.apiopen.top/novelApi',{name:"参数1",url:"参数2"},{emulateJSON:true}).then(function(res){
+                      console.log("res:",res.body);
+                        this.result=[];
+                      this.novels = res.body.data;
+                    },function(res){
+                        console.log(res.status);
                     });
                 }
             }
