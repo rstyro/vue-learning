@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>计算与监听器</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <p>姓：<input v-model="firstName" /></p>
+    <p>名：<input v-model="lastName" /></p>
+    <p>全名:{{firstName}} {{lastName}}</p>
+    <p>全名:{{fullName}}</p>
+    <p>修改名字的次数：{{count}}</p>
+</div>
+<script>
+    var app = new Vue({
+        el:"#app",
+        data:{
+            firstName:"",
+            lastName: "",
+            count:0
+        },
+        computed: {
+            fullName: function () {
+                return this.firstName + this.lastName;
+            }
+        },
+        watch: {
+            fullName: function () {
+               this.count++;
+            }
+        }
+    })
+</script>
+</body>
+</html>

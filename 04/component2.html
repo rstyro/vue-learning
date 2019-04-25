@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>组件间的数据交互</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+
+    </style>
+</head>
+<body >
+<div id="app">
+    <input type="text" v-model="text"> <button @click="addItem">添加数据</button>
+    <br>
+    <ul>
+        <fruit-item v-for="(fruit,index) of fruits" :item="fruit" :index="index"  @delete="deleteItem"></fruit-item>
+    </ul>
+</div>
+<script>
+    Vue.component("fruit-item",{
+        props:["item","index"],
+        template: "<li @click='liClick'>{{item.cn_name}}-->{{item.en_name}}</li>",
+        methods: {
+            liClick: function () {
+                this.$emit("delete",this.index)
+            }
+        }
+    });
+    var vm = new Vue({
+        el:'#app',
+        data:{
+            fruits:[{cn_name:"苹果",en_name:"apple"},
+                {cn_name:"梨",en_name:"pear"},
+                {cn_name:"杏",en_name:"apricot"},
+                {cn_name:"桃",en_name:"peach"},
+                {cn_name:"葡萄",en_name:"grape"}
+            ],
+            text:""
+        },
+        methods:{
+            deleteItem: function (index) {
+                this.fruits.splice(index,1);
+            },
+            addItem: function () {
+                this.fruits.push({cn_name:this.text,en_name:"英文是啥"});
+                this.text='';
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

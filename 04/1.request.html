@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>请求</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+
+    </style>
+</head>
+<body >
+<div id="app">
+    <button @click="getApiData">点击得到数据</button>
+    <div v-for="item in result">
+        <h3>{{item.title}}</h3><i style="color: #ccc;">{{item.authors}}</i>
+        <p>{{item.content}}</p>
+        <br>
+        <br>
+        <br>
+    </div>
+</div>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script>
+    window.onload = function(){
+        var vm = new Vue({
+            el:'#app',
+            data:{
+                msg:'Hello World!',
+                result:[]
+            },
+            methods:{
+                getApiData:function(){
+                    //发送get请求
+                    this.$http.get('https://api.apiopen.top/getTangPoetry?page=1&count=20').then(function(res){
+                        console.log("res:",res.body);
+                        var json = JSON.stringify(res.body);
+                        console.log("json:",json);
+                        this.result = res.body.result;
+                    },function(){
+                        console.log('请求失败处理');
+                    });
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

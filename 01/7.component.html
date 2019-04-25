@@ -21,7 +21,12 @@
 <script>
     Vue.component("fruit-item",{
         props:["item"],
-        template: "<li>{{item.cn_name}}-->{{item.en_name}}</li>"
+        template: "<li @click='alertName(item.cn_name)'>{{item.cn_name}}-->{{item.en_name}}</li>",
+        methods: {
+            alertName: function (name) {
+                alert(name);
+            }
+        }
     });
     var app = new Vue({
         el:"#app",

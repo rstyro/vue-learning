@@ -6,9 +6,10 @@
     </head>
     <body>
         
-        <div id="app">
-            {{ message }}
+        <!--<div id="app"> {{ message }} </div>-->
+        <div id="app" v-html="message">
         </div>
+
         
         <script>
           var app = new Vue({

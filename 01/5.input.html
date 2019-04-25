@@ -14,15 +14,75 @@
     </style>
 </head>
 <body>
-    <div id="app">
+    <div id="input">
         <p>{{message}}</p>
         <input type="text" v-model="message" />
     </div>
+
+    <br>
+    <br>
+    <div id='checked'>
+        <input type="checkbox" id="jack" value="Jack" v-model="checkedNames">
+        <label for="jack">Jack</label>
+        <input type="checkbox" id="john" value="John" v-model="checkedNames">
+        <label for="john">John</label>
+        <input type="checkbox" id="mike" value="Mike" v-model="checkedNames">
+        <label for="mike">Mike</label>
+        <br>
+        <span>Checked names: {{ checkedNames }}</span>
+    </div>
+
+    <br>
+    <br>
+    <div id="radio">
+        <input type="radio" id="one" value="One" v-model="picked">
+        <label for="one">One</label>
+        <br>
+        <input type="radio" id="two" value="Two" v-model="picked">
+        <label for="two">Two</label>
+        <br>
+        <span>Picked: {{ picked }}</span>
+    </div>
+    <br>
+    <div id="selectd">
+        <select v-model="selected" multiple style="width: 50px;">
+            <option>A</option>
+            <option>B</option>
+            <option>C</option>
+        </select>
+        <br>
+        <span>Selected: {{ selected }}</span>
+    </div>
 <script>
-    var app = new Vue({
-        el:"#app",
+    //input 输入框
+    var inputV = new Vue({
+        el:"#input",
         data:{
             message:"来呀，快活呀"
+        }
+    })
+
+    //复选框
+    var checkedV = new Vue({
+        el:"#checked",
+        data:{
+            checkedNames:[]
+        }
+    })
+
+    //单选框
+    var radioV = new Vue({
+        el:"#radio",
+        data:{
+            picked:[]
+        }
+    })
+
+    //选择框
+    var selectdV = new Vue({
+        el:"#selectd",
+        data:{
+            selected:[]
         }
     })
 </script>
