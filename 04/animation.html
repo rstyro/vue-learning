@@ -31,6 +31,7 @@
         .bottom-box{
             width: 100%;
             height: 100px;
+			position: relative;
         }
 
         .icon-box{
@@ -48,11 +49,24 @@
         }
         .icon-location {
             z-index: 888;
+			
         }
+		.color-backgound{
+			background: #37C6C0;
+			padding: 5px 10px;
+			position:relative;
+			z-index:0;
+		}
         .icon{
             width: 30px;
             height: 30px;
         }
+		.icon-number{
+			width: 100px;
+            height: 100px;
+			line-height: 100px;
+			text-align:right;
+		}
         .icon-decoration {
             width: 100px;
             height: 100px;
@@ -65,11 +79,13 @@
             background-position: 0 0;
             transition: background-position 0.8s steps(17);
             transition-duration: 0s;
+			z-index:99;
         }
 
         .icon-decoration-active{
             transition-duration: 0.8s;
             background-position: -1700px 0px;
+			z-index:99;
         }
 
 
@@ -98,13 +114,14 @@
         <div class="bottom-box">
             <div class="icon-box">
                 <div class="icon-background">
-                    <div class="icon-location"   >
-                        <img v-if="active" class="icon" src="../images/heart-active.png" @click="toggle" :class="AnimateClass"></img>
-                        <img v-else class="icon" src="../images/heart.png" @click="toggle" :class="AnimateClass"></img>
+                    <div class="icon-location" >
+						<img v-if="active" class="icon animated" src="../images/heart-active.png" @click="toggle" :class="AnimateClass"></img>
+						<img v-else class="icon animated" src="../images/heart.png" @click="toggle" :class="AnimateClass"></img>						
                     </div>
                     <div class="icon-decoration" :class="{ 'icon-decoration-active':active}"></div>
                 </div>
             </div>
+			<div class="icon-number">{{number}}</div>
 
         </div>
 
@@ -198,10 +215,57 @@
                     "slideOutUp",
                     "heartBea"
                 ],
+				randomAnimatedList:[
+                    "bounce",
+                    "flash",
+                    "pulse",
+                    "rubberBand",
+                    "shake",
+                    "headShake",
+                    "swing",
+                    "tada",
+                    "wobble",
+                    "jello",
+                    "bounceIn",
+                    "bounceInDown",
+                    "bounceInLeft",
+                    "bounceInRight",
+                    "bounceInUp",
+                    "fadeIn",
+                    "fadeInDown",
+                    "fadeInDownBig",
+                    "fadeInLeft",
+                    "fadeInLeftBig",
+                    "fadeInRight",
+                    "fadeInRightBig",
+                    "fadeInUp",
+                    "fadeInUpBig",
+                    "flipInX",
+                    "flipInY",
+                    "lightSpeedIn",
+                    "rotateIn",
+                    "rotateInDownLeft",
+                    "rotateInDownRight",
+                    "rotateInUpLeft",
+                    "rotateInUpRight",
+                    "hinge",
+                    "jackInTheBox",
+                    "rollIn",
+                    "zoomIn",
+                    "zoomInDown",
+                    "zoomInLeft",
+                    "zoomInRight",
+                    "zoomInUp",
+                    "slideInDown",
+                    "slideInLeft",
+                    "slideInRight",
+                    "heartBea"
+                ],
                 index: 0,
                 active: false,
                 toggleAnimate: false,
-                animated: 'animated heartBeat'
+                animated: 'bounce',
+				number:0
             }
         },
         methods:{
@@ -214,12 +278,23 @@
             },
             toggle () {
                 this.active = !this.active;
-                this.toggleAnimate = !this.toggleAnimate
-            }
+                this.toggleAnimate = !this.toggleAnimate;
+				this.number++;
+            },
+			randomFrom(lowerValue,upperValue){
+			 return Math.floor(Math.random() * (upperValue - lowerValue + 1) + lowerValue);
+			},
+			getRandomNum(){
+				const len = this.randomAnimatedList.length;
+				const randomNum = this.randomFrom(0,len);
+				return randomNum;
+			}
         },
         computed: {
             AnimateClass () {
-                return this.toggleAnimate ? this.animated : ''
+				
+                // return this.toggleAnimate ? this.animated : ''
+                return this.toggleAnimate ? this.randomAnimatedList[this.getRandomNum()] : ''
             }
         },
     });
