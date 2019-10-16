@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>点赞动画</title>
+    <script src="../dist/vue.min.js"></script>
+    <link href="../style/animate.min.css" rel="stylesheet">
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+            background: #eee;
+        }
+        .btn{
+            height: 35px;
+            line-height: 35px;
+            background: aqua;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .row{
+            width: 95%;
+            min-height: 110px;
+            background: #fff;
+            position: relative;
+            padding: 10px 5px;
+            border-radius: 5px;
+            margin: 10px auto;
+        }
+        .bottom-box{
+            width: 100%;
+            height: 100px;
+        }
+
+        .icon-box{
+            position: absolute;
+            bottom: 0%;
+            left: 2%;
+        }
+        .icon-background {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-location {
+            z-index: 888;
+        }
+        .icon{
+            width: 30px;
+            height: 30px;
+        }
+        .icon-decoration {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            background: url(../images/cover.png) ;
+            background-position: 0 0;
+            transition: background-position 0.8s steps(17);
+            transition-duration: 0s;
+        }
+
+        .icon-decoration-active{
+            transition-duration: 0.8s;
+            background-position: -1700px 0px;
+        }
+
+
+    </style>
+</head>
+<body >
+<div id="app">
+
+    <div>第{{index+1}}种效果 <span class="btn" @click="changeAnimated">点击更改效果</span></div>
+    <div  class="animated" :class="testAnimated" >
+        <img class="icon" src="../images/heart.png"></img>
+    </div>
+
+    <div class="row">
+        <div>
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+            这里放一段话，一段内容，看看会是一个什么效果
+        </div>
+        <div class="bottom-box">
+            <div class="icon-box">
+                <div class="icon-background">
+                    <div class="icon-location"   >
+                        <img v-if="active" class="icon" src="../images/heart-active.png" @click="toggle" :class="AnimateClass"></img>
+                        <img v-else class="icon" src="../images/heart.png" @click="toggle" :class="AnimateClass"></img>
+                    </div>
+                    <div class="icon-decoration" :class="{ 'icon-decoration-active':active}"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+<script>
+
+    var vm = new Vue({
+        el:'#app',
+        data() {
+            return {
+                testAnimated:"",
+                animatedList:[
+                    "bounce",
+                    "flash",
+                    "pulse",
+                    "rubberBand",
+                    "shake",
+                    "headShake",
+                    "swing",
+                    "tada",
+                    "wobble",
+                    "jello",
+                    "bounceIn",
+                    "bounceInDown",
+                    "bounceInLeft",
+                    "bounceInRight",
+                    "bounceInUp",
+                    "bounceOut",
+                    "bounceOutDown",
+                    "bounceOutLeft",
+                    "bounceOutRight",
+                    "bounceOutUp",
+                    "fadeIn",
+                    "fadeInDown",
+                    "fadeInDownBig",
+                    "fadeInLeft",
+                    "fadeInLeftBig",
+                    "fadeInRight",
+                    "fadeInRightBig",
+                    "fadeInUp",
+                    "fadeInUpBig",
+                    "fadeOut",
+                    "fadeOutDown",
+                    "fadeOutDownBig",
+                    "fadeOutLeft",
+                    "fadeOutLeftBig",
+                    "fadeOutRight",
+                    "fadeOutRightBig",
+                    "fadeOutUp",
+                    "fadeOutUpBig",
+                    "flipInX",
+                    "flipInY",
+                    "flipOutX",
+                    "flipOutY",
+                    "lightSpeedIn",
+                    "lightSpeedOut",
+                    "rotateIn",
+                    "rotateInDownLeft",
+                    "rotateInDownRight",
+                    "rotateInUpLeft",
+                    "rotateInUpRight",
+                    "rotateOut",
+                    "rotateOutDownLeft",
+                    "rotateOutDownRight",
+                    "rotateOutUpLeft",
+                    "rotateOutUpRight",
+                    "hinge",
+                    "jackInTheBox",
+                    "rollIn",
+                    "rollOut",
+                    "zoomIn",
+                    "zoomInDown",
+                    "zoomInLeft",
+                    "zoomInRight",
+                    "zoomInUp",
+                    "zoomOut",
+                    "zoomOutDown",
+                    "zoomOutLeft",
+                    "zoomOutRight",
+                    "zoomOutUp",
+                    "slideInDown",
+                    "slideInLeft",
+                    "slideInRight",
+                    "slideInUp",
+                    "slideOutDown",
+                    "slideOutLeft",
+                    "slideOutRight",
+                    "slideOutUp",
+                    "heartBea"
+                ],
+                index: 0,
+                active: false,
+                toggleAnimate: false,
+                animated: 'animated heartBeat'
+            }
+        },
+        methods:{
+            changeAnimated(){
+                this.testAnimated=this.animatedList[this.index];
+                this.index++;
+                if(this.index == this.animatedList.length){
+                    this.index=0;
+                }
+            },
+            toggle () {
+                this.active = !this.active;
+                this.toggleAnimate = !this.toggleAnimate
+            }
+        },
+        computed: {
+            AnimateClass () {
+                return this.toggleAnimate ? this.animated : ''
+            }
+        },
+    });
+
+</script>
+</body>
+</html>
