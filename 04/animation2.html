@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dong</title>
+    <script src="../dist/vue.min.js"></script>
+    <link href="../style/animate.min.css" rel="stylesheet">
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+            background: #eee;
+        }
+        .content{
+            display: inline-black;
+			padding:2px;
+			float:left;
+        }
+
+    </style>
+</head>
+<body >
+<div id="app">
+    <div class="content animated" v-for="(item,index) of runList" :class="item.animateClass">{{item.text}}</div>
+</div>
+<script>
+
+    var vm = new Vue({
+        el:'#app',
+        data() {
+            return {
+                content:"不敢冒然撩拨四季的容颜，怕卑微了琉璃的祈盼.",
+                index: 0,
+                randomAnimatedList:[
+                    "bounce",
+                    "flash",
+                    "pulse",
+                    "rubberBand",
+                    "shake",
+                    "headShake",
+                    "swing",
+                    "tada",
+                    "wobble",
+                    "jello",
+                    "bounceIn",
+                    "bounceInDown",
+                    "bounceInLeft",
+                    "bounceInRight",
+                    "bounceInUp",
+                    "fadeIn",
+                    "fadeInDown",
+                    "fadeInDownBig",
+                    "fadeInLeft",
+                    "fadeInLeftBig",
+                    "fadeInRight",
+                    "fadeInRightBig",
+                    "fadeInUp",
+                    "fadeInUpBig",
+                    "flipInX",
+                    "flipInY",
+                    "lightSpeedIn",
+                    "rotateIn",
+                    "rotateInDownLeft",
+                    "rotateInDownRight",
+                    "rotateInUpLeft",
+                    "rotateInUpRight",
+                    "jackInTheBox",
+                    "rollIn",
+                    "zoomIn",
+                    "zoomInDown",
+                    "zoomInLeft",
+                    "zoomInRight",
+                    "zoomInUp",
+                    "slideInDown",
+                    "slideInLeft",
+                    "slideInRight",
+                    "heartBea"
+                ],
+                list:[],
+                runList:[]
+            }
+        },
+        methods:{
+            randomFrom(min,max){
+                return Math.floor(Math.random() * (max - min + 1) + min);
+            },
+            getRandomNum(arr) {
+                var randomNum = this.randomFrom(0,this.randomAnimatedList.length);
+                if(arr.indexOf(randomNum) === -1){
+                    return randomNum;
+                }
+                return this.getRandomNum(arr);
+            },
+            initList () {
+                var numberArr = new Array();
+                if(this.content){
+                    for(var i=0;i<this.content.length;i++){
+                        var obj = new Object();
+                        obj.text = this.content.charAt(i);
+                        var number = this.getRandomNum(numberArr);
+                        numberArr.push(number);
+                        obj.animateClass = this.randomAnimatedList[number];
+                        this.list.push(obj);
+                    }
+                }
+                console.log("list:",this.list);
+            },
+            setInter(s,fn) {
+                let timeOut = (s, fn) => {
+                    setTimeout(() => {
+                        fn();
+                        timeOut(s, fn);
+                    }, s)
+                }
+                timeOut(s, fn);
+            },
+            addList(i){
+                var len = this.list.length;
+                console.log("len:"+len);
+                // if(len-i>0){
+                //     this.runList.push(this.list[i]);
+                // }
+                // i++;
+                // console.log("runList:",this.runList);
+            }
+        },
+        computed: {
+
+        },
+    });
+
+    var offset =0;
+    function addList(){
+        var len = vm.list.length;
+        console.log("len:"+len);
+        if(len-offset>0){
+            vm.runList.push(vm.list[offset]);
+        }
+        offset++;
+        console.log("runList:",vm.runList);
+    }
+
+    vm.initList();
+    vm.setInter(800,addList);
+
+</script>
+</body>
+</html>
