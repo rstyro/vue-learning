@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>TEST</title>
+	<link rel="stylesheet" href="">
+
+	<style type="text/css">
+        .container {
+            position: relative;
+            width: 100px;
+        }
+        .brand{
+            width: 100px;
+            height: 150px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: all 1s;
+            backface-visibility: hidden;
+        }
+        .brand-front{
+            background: #ccc;
+            width: 100%;
+            height: 100%;
+        }
+        .brand-back{
+            background: red;
+            width: 100%;
+            height: 100%;
+        }
+        .brand-text{
+            width: 20px;
+            height: 70px;
+            line-height: 24px;
+            padding-top: 40px;
+            margin: 0px auto;
+            color:#fff;
+        }
+	</style>
+</head>
+<body>
+    <div id="app">
+        <div v-for="(item,index) in brands.list">
+            <div class="container"  @click="open(index)">
+                <div class="brand" v-bind:style="{transform: 'rotateY('+item.frontAngle+'deg)'}">
+                    <div class="brand-front"><div class="brand-text" >{{item.frontText}}</div></div>
+                </div>
+                <div class="brand" v-bind:style="{transform: 'rotateY('+item.backAngle+'deg)'}">
+                    <div class="brand-back"><div class="brand-text" >{{item.backText}}</div></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+ <script src="../dist/vue.min.js"></script>
+<script type="text/javascript">
+     var app = new Vue({
+          el: '#app',
+          data: {
+              brands:{
+                  times:'1.5s',
+                  list:[{
+                      frontText: "请翻牌",
+                      backText:"一等奖",
+                      isOpen: false,
+                      frontAngle: 0,
+                      backAngle: -180
+                  }]
+              },
+
+          },
+          computed: {
+           
+          },
+          methods:{
+              //翻牌
+              open:function (index) {
+                  this.brands.list[index].isOpen=!this.brands.list[index].isOpen;
+                  if(this.brands.list[index].isOpen){
+                      this.brands.list[index].frontAngle=180;
+                      this.brands.list[index].backAngle=0;
+                  }else{
+                      this.brands.list[index].frontAngle=0;
+                      this.brands.list[index].backAngle=-180;
+                  }
+              }
+          }
+        })
+</script>
+</body>
+</html>
