@@ -270,9 +270,10 @@
         },
         methods:{
             changeAnimated(){
-                this.testAnimated=this.animatedList[this.index];
+                this.testAnimated=this.randomAnimatedList[this.index];
+				console.log("animated:",this.testAnimated);
                 this.index++;
-                if(this.index == this.animatedList.length){
+                if(this.index == this.randomAnimatedList.length){
                     this.index=0;
                 }
             },
