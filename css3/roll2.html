@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="">
+	<style type="text/css">
+		/*容器*/
+		.container {
+			-webkit-perspective: 1000px;
+			-moz-perspective: 1000px;
+			-ms-perspective: 1000px;
+			perspective: 1000px;
+		}
+		/*piece盒子*/
+		.piece-box {
+			position: relative;
+			width: 200px;
+			height: 200px;
+			margin: 300px auto;
+			perspective-origin: 50% 50%;
+			-webkit-transform-style: preserve-3d;
+			-moz-transform-style: preserve-3d;
+			-ms-transform-style: preserve-3d;
+			transform-style: preserve-3d;
+			transition-duration: 2s;
+			/*animation: pieceRotate 5s;*/
+			/*-moz-animation: pieceRotate 5s;*/
+		 /*!* Firefox *!*/
+			/*-webkit-animation: pieceRotate 5s;*/
+		 /*!* Safari and Chrome *!*/
+			/*-o-animation: pieceRotate 5s;*/
+		}
+
+		/*piece通用样式*/
+		.piece {
+			position: absolute;
+			width: 200px;
+			height: 200px;
+			background: red;
+			opacity: 0.5;
+		}
+
+		.piece-1 {
+			background: #FF6666;
+			-webkit-transform: rotateX(0deg) translateZ(173.2px);
+			-ms-transform: rotateX(0deg) translateZ(173.2px);
+			-o-transform: rotateX(0deg) translateZ(173.2px);
+			transform: rotateX(0deg) translateZ(173.2px);
+		}
+
+		.piece-2 {
+			background: #FFFF00;
+			-webkit-transform: rotateX(60deg) translateZ(173.2px);
+			-ms-transform: rotateX(60deg) translateZ(173.2px);
+			-o-transform: rotateX(60deg) translateZ(173.2px);
+			transform: rotateX(60deg) translateZ(173.2px);
+		}
+
+		.piece-3 {
+			background: #006699;
+			-webkit-transform: rotateX(120deg) translateZ(173.2px);
+			-ms-transform: rotateX(120deg) translateZ(173.2px);
+			-o-transform: rotateX(120deg) translateZ(173.2px);
+			transform: rotateX(120deg) translateZ(173.2px);
+		}
+
+		.piece-4 {
+			background: #009999;
+			-webkit-transform: rotateX(180deg) translateZ(173.2px);
+			-ms-transform: rotateX(180deg) translateZ(173.2px);
+			-o-transform: rotateX(180deg) translateZ(173.2px);
+			transform: rotateX(180deg) translateZ(173.2px);
+		}
+
+		.piece-5 {
+			background: #FF0033;
+			-webkit-transform: rotateX(240deg) translateZ(173.2px);
+			-ms-transform: rotateX(240deg) translateZ(173.2px);
+			-o-transform: rotateX(240deg) translateZ(173.2px);
+			transform: rotateX(240deg) translateZ(173.2px);
+		}
+
+		.piece-6 {
+			background: #FF6600;
+			-webkit-transform: rotateX(300deg) translateZ(173.2px);
+			-ms-transform: rotateX(300deg) translateZ(173.2px);
+			-o-transform: rotateX(300deg) translateZ(173.2px);
+			transform: rotateX(300deg) translateZ(173.2px);
+		}
+
+		@keyframes pieceRotate {
+			0% {
+				-webkit-transform: rotateX(0deg);
+				-ms-transform: rotateX(0deg);
+				-o-transform: rotateX(0deg);
+				transform: rotateX(0deg);
+			}
+
+			100% {
+				-webkit-transform: rotateX(360deg);
+				-ms-transform: rotateX(360deg);
+				-o-transform: rotateX(360deg);
+				transform: rotateX(360deg);
+			}
+		}
+
+	</style>
+</head>
+<body>
+<div id="app">
+
+
+	<div class="container">    
+		<div class="piece-box" v-bind:style="{transform:'rotateX('+offsetAngle+'deg)'}">
+			<div class="piece piece-1">1</div>
+			<div class="piece piece-2">2</div>  
+			<div class="piece piece-3">3</div>    
+			<div class="piece piece-4">4</div>       
+			<div class="piece piece-5">5</div>       
+			<div class="piece piece-6">6</div> 
+		</div>
+	</div>
+
+	<div @click="run">RUN</div>
+</div>
+	<script src="../dist/vue.min.js"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el:'#app',
+			data:{
+				list:[
+					"1111",
+					"2222",
+					"3333",
+					"4444",
+					"5555",
+					"6666"
+				],
+				offsetAngle: 0,
+				rotateAngle: 60
+			},
+			methods:{
+				run: function (index) {
+					const num = this.randomNum(10,20);
+					this.offsetAngle=this.offsetAngle+this.rotateAngle*num;
+					console.log("num:",num);
+					console.log("angle:",this.offsetAngle);
+				},
+				randomNum:function(m,n){
+					return Math.ceil(Math.random()*(m - n) + n);
+				}
+			}
+		});
+	</script>
+</body>
+</html>

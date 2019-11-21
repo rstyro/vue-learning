@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>color</title>
+
+    <style>
+        div{width:100px;height:100px;position:absolute}
+        #result{width:50px;height:50px;}
+        #pink,#result{top:50px;left:50px}
+
+        #pink{background:pink}
+        #green{background:green}
+
+
+        body {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -ms-flex-align: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            background: black;
+            color: white;
+            text-align: white;
+        }
+        .circle,
+        .circle::before,
+        .circle::after {
+            cursor: pointer;
+            -webkit-box-flex: 0;
+            -webkit-flex: 0 0 200px;
+            -ms-flex: 0 0 200px;
+            flex: 0 0 200px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: red;
+            display: block;
+            -webkit-transform: translate(0, -25%);
+            -ms-transform: translate(0, -25%);
+            transform: translate(0, -25%);
+            mix-blend-mode: screen;
+            z-index: 1;
+            -webkit-transition: 0.5s cubic-bezier(0.52, -0.43, 0.4, 1.32) all;
+            transition: 0.5s cubic-bezier(0.52, -0.43, 0.4, 1.32) all;
+        }
+        .circle::before,
+        .circle::after {
+            content: '';
+        }
+        .circle::before {
+            background: lime;
+            -webkit-transform: translate(-33%, 50%);
+            -ms-transform: translate(-33%, 50%);
+            transform: translate(-33%, 50%);
+        }
+        .circle::after {
+            background: blue;
+            -webkit-transform: translate(33%, -50%);
+            -ms-transform: translate(33%, -50%);
+            transform: translate(33%, -50%);
+        }
+        .circle.focus {
+            -webkit-transform: translate(0, 0);
+            -ms-transform: translate(0, 0);
+            transform: translate(0, 0);
+        }
+        .circle.focus::before {
+            -webkit-transform: translate(3%, 0);
+            -ms-transform: translate(3%, 0);
+            transform: translate(3%, 0);
+        }
+        .circle.focus::after {
+            -webkit-transform: translate(0, -103%);
+            -ms-transform: translate(0, -103%);
+            transform: translate(0, -103%);
+        }
+    </style>
+</head>
+<body>
+
+<div id="green"></div>
+<div id="pink"></div>
+<div id="result"></div>
+
+<div class="circle"></div>
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+    var green = document.getElementById('green'),
+        blue = document.getElementById('blue'),
+        result = document.getElementById('result');
+
+    var resultColor = multiply( getColor(green), getColor(pink) );
+
+    result.style.backgroundColor = 'rgb('+ resultColor.join(',') + ')';
+
+    function getColor(elem) {
+        var style = document.defaultView.getComputedStyle(elem, null);
+        return style['background-color']
+            .replace(/^rgb\(([^\)]+)\)/,'$1')
+            .replace(/\s/g, '')
+            .split(',');
+    }
+
+    function multiply(rgb1, rgb2) {
+        var result = [],
+            i = 0;
+        for( ; i < rgb1.length; i++ ) {
+            result.push(Math.floor(rgb1[i] * rgb2[i] / 255));
+        }
+        return result;
+    }
+
+    $('.circle').click(function() {
+        $(this).toggleClass('focus');
+    });
+</script>
+</body>
+</html>
