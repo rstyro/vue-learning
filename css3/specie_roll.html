@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>硬币旋转</title>
+    <script src="../dist/vue.min.js"></script>
+    <style>
+        #app{
+            width: 500px;
+            height: 500px;
+            margin: 100px auto;
+        }
+
+        .specie-box{
+            width:100px;
+            height:100px;
+            position: relative;
+            margin: 0px auto;
+        }
+        .specie {
+            width: 100%;
+            height: 100%;
+            text-align:center;
+            line-height:100px;
+            font-size:14px;
+            color:#fff;
+            border-radius:50%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: all 3s;
+            backface-visibility: hidden;
+
+        }
+        .specie-front{
+            background: #ba0;
+        }
+        .specie-back{
+            background: #cccccc;
+        }
+
+        .run{
+            width: 100px;
+            height: 45px;
+            line-height: 45px;
+            margin: 0px auto;
+            text-align:center;
+        }
+    </style>
+</head>
+<body >
+<div id="app">
+    <div class="specie-box">
+        <div class="specie specie-front" v-bind:style="{transform:'rotateY('+frontRotate+'deg)'}">
+            <div>正面</div>
+        </div>
+        <div class="specie specie-back" v-bind:style="{transform:'rotateY('+backRotate+'deg)'}">
+            <div>反面</div>
+        </div>
+    </div>
+
+    <div @click="rotate" class="run">旋转</div>
+</div>
+<script>
+    window.onload = function(){
+        var vm = new Vue({
+            el:'#app',
+            data:{
+                frontRotate:0,
+                backRotate:-180,
+            },
+            methods:{
+                rotate: function () {
+                    let flag = this.randomNum(0, 1);
+                    var offset = 180*6;
+                    if(flag > 0.5){
+                        offset=offset+180;
+                    }
+                    this.frontRotate = this.frontRotate + offset;
+                    this.backRotate = this.backRotate + offset;
+                    console.log("flag:",flag);
+                    console.log("frontRotate:",this.frontRotate);
+                    console.log("backRotate:",this.backRotate);
+                },
+                randomNum:function(m,n){
+                    return Math.random()*(m - n) + n;
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>
