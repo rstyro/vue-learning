@@ -18,7 +18,7 @@
             width: 100%;
             height:400px ;
             margin: 40px auto;
-            background: #37C6C0;
+            background: #0f222b;
         }
         .container {
             position: relative;
@@ -74,16 +74,12 @@
         }
 
         .brand::before, .brand::after {
-
             content: '';
-
             z-index: -1;
-
             margin: -5%;
-
             box-shadow: inset 0 0 0 2px;
-
             animation: clipMe 8s linear infinite;
+            color: #69ca62;
 
         }
         .brand::before {
@@ -93,28 +89,28 @@
         }
 
         @keyframes clipMe {
-
+            /* 在原来边框裁剪的情况下 追加了 10 **/
             0%, 100% {
 
-                clip: rect(0px, 120.0px, 2px, 0px);
+                clip: rect(0px, 110.0px, 2px, 0px);
 
             }
 
             25% {
 
-                clip: rect(0px, 2px, 170.0px, 0px);
+                clip: rect(0px, 2px, 160.0px, 0px);
 
             }
 
             50% {
 
-                clip: rect(168.0px, 120.0px, 170.0px, 0px);
+                clip: rect(158.0px, 110.0px, 160.0px, 0px);
 
             }
 
             75% {
 
-                clip: rect(0px, 120.0px, 170.0px, 118.0px);
+                clip: rect(0px, 110.0px, 160.0px, 108.0px);
 
             }
 
