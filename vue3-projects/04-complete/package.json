@@ -1,0 +1,20 @@
+{
+  "name": "04-complete",
+  "version": "1.0.0",
+  "description": "综合实战：组件化规范 + API 封装 + 环境配置 + 错误处理",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.7"
+  }
+}
