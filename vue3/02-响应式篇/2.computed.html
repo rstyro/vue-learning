@@ -38,10 +38,13 @@
         <p>姓：<input v-model="firstName" placeholder="姓"></p>
         <p>名：<input v-model="lastName" placeholder="名"></p>
         <p>用 computed 计算的全名：<strong>{{ fullName }}</strong></p>
-        <p>用 methods 调用的全名：<strong>{{ getFullName() }}</strong>（每次调用都执行函数）</p>
-        <p class="elapsed">⏱ 统计：computed 执行了 <span class="running">{{ computedCount }}</span> 次（带缓存，只有依赖变化才 +1）<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;methods 执行了 <span class="running">{{ methodCount }}</span> 次（每次渲染都会 +1）</p>
-        <button @click="refresh++">点我触发一次重新渲染（看看上面的统计有什么变化）</button>
+        <p>用 methods 调用的全名：<strong>{{ getFullName() }}</strong>（每次渲染都执行函数）</p>
+        <p class="elapsed">⏱ 统计：computed 重新计算了 <span class="running">{{ computedCount }}</span> 次（带缓存，只有依赖变化才重算）<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;methods 已调用 <span class="running">{{ methodCallCountDisplay }}</span> 次（每次渲染都会 +1）</p>
+        <button @click="triggerRender">点我触发一次重新渲染（看看上面的统计有什么变化）</button>
+        <p class="tip">💡 点上面的按钮：methods 调用次数 +1（每次渲染都执行）；computed 次数不变（依赖没变，直接用缓存）。<br>
+        想要验证「依赖变了才重算」，改一下姓或名输入框试试。<br>
+        ⚠️ 同时注意：getFullName() 里用了<b>普通变量</b>计数，而不是 ref —— 渲染期间修改响应式数据会导致无限渲染循环报错！</p>
     </div>
 
     <!-- ========== 购物车 ========== -->
@@ -96,7 +99,7 @@ const fullName2 = computed({
 
     </div>
 <script>
-        const { createApp, ref, computed } = Vue;
+        const { createApp, ref, computed, watch, nextTick, onMounted } = Vue;
 
         createApp({
             setup() {
@@ -105,19 +108,49 @@ const fullName2 = computed({
                 const lastName = ref('三');
                 const refresh = ref(0);
                 const computedCount = ref(0);
-                const methodCount = ref(0);
 
                 // computed 自动缓存：依赖没变就不执行
+                // ⚠️ 注意：computed 的 getter 里绝不能修改响应式数据！
+                //   如果在 getter 里执行 computedCount.value++，
+                //   会让 fullName 依赖自己 → 无限递归 → Maximum recursive updates exceeded
+                //   正确做法：用 watch 监听 fullName 值的变化来统计重算次数
                 const fullName = computed(() => {
-                    computedCount.value++;
+                    console.log('⚡ computed fullName 被重新计算了（按 F12 看控制台）');
                     return firstName.value + ' ' + lastName.value;
                 });
 
+                // watch 监听 fullName：只有它的【值】真的变化时才 +1（依赖变了才会重新计算）
+                watch(fullName, () => {
+                    computedCount.value++;
+                });
+
                 // methods 写法：每次渲染都执行
+                // ⚠️⚠️ 关键：这里用【普通变量】计数，绝不能改成 ref！
+                //   如果 methodCallCount 是 ref 并在渲染期间 ++，
+                //   就会：渲染 → 修改响应式数据 → 触发新渲染 → 再调用 → 无限循环
+                //   （这正是报 Maximum recursive updates exceeded 的另一个原因）
+                let methodCallCount = 0;   // 普通变量：计数但不触发渲染
                 function getFullName() {
-                    methodCount.value++;
+                    methodCallCount++;
                     return firstName.value + ' ' + lastName.value;
                 }
+
+                // 页面显示的计数：ref（响应式），但只在事件回调/nextTick 中同步，
+                // 绝不在渲染过程中修改它
+                const methodCallCountDisplay = ref(0);
+
+                // 用户点击按钮：触发一次重新渲染，渲染完成后(nextTick)再同步显示计数
+                function triggerRender() {
+                    refresh.value++;
+                    nextTick(() => {
+                        methodCallCountDisplay.value = methodCallCount;
+                    });
+                }
+
+                // 首次挂载后同步初始计数（首次渲染时 getFullName 已被调用 1 次）
+                onMounted(() => {
+                    methodCallCountDisplay.value = methodCallCount;
+                });
 
                 // ===== ② 购物车 =====
                 const cart = ref([
@@ -158,8 +191,8 @@ const fullName2 = computed({
                 });
 
                 return {
-                    firstName, lastName, refresh, computedCount, methodCount,
-                    fullName, getFullName,
+                    firstName, lastName, refresh, computedCount, methodCallCountDisplay,
+                    fullName, getFullName, triggerRender,
                     cart, totalCount, totalPrice,
                     keyword, students, filteredStudents,
                     firstName2, lastName2, fullName2
