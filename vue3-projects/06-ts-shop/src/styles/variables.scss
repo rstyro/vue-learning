@@ -1,0 +1,25 @@
+// styles/variables.scss —— 全局 SCSS 变量
+// 注意：vite.config.ts 里配置了 additionalData，这个文件的变量会被自动注入到
+//       所有 <style lang="scss"> 中，组件里直接用 $primary 即可，无需手动引入。
+// 建议：变量用 kebab-case，值集中管理，改主题色只改这一个文件。
+
+// 颜色（与 Element Plus 默认主题保持一致）
+$primary: #409eff;        // 主色
+$success: #67c23a;        // 成功
+$warning: #e6a23c;        // 警告
+$danger: #f56c6c;         // 危险
+$info: #909399;           // 信息
+
+// 文字颜色
+$text-main: #303133;      // 主要文字
+$text-regular: #606266;   // 常规文字
+$text-secondary: #909399; // 次要文字
+
+// 边框与背景
+$border-color: #e4e7ed;   // 边框
+$bg-page: #f5f7fa;        // 页面背景
+
+// 尺寸
+$radius: 8px;             // 圆角
+$gap: 16px;               // 通用间距
+$header-height: 56px;     // 顶部导航高度

@@ -1,0 +1,9 @@
+# 依赖与构建产物（不入库）
+node_modules
+dist
+
+# 本地环境文件
+*.local
+
+# 编辑器
+.DS_Store

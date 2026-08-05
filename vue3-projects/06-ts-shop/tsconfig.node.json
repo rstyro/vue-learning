@@ -1,0 +1,14 @@
+{
+  // 这个配置只负责 vite.config.ts 等"构建工具代码"的类型检查
+  // 它不检查 src 下的业务代码（那是 tsconfig.json 的职责）
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts"]
+}

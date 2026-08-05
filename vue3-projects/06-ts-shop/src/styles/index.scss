@@ -1,0 +1,41 @@
+// styles/index.scss —— 全局样式（在 main.ts 里引入）
+// SCSS 特性展示：变量、嵌套、@use 模块化
+@use './variables.scss' as *;
+
+// 基础重置
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', Arial, sans-serif;
+  font-size: 14px;
+  color: $text-main;
+  background-color: $bg-page;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+// 通用布局工具类
+.page-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: $gap;
+}
+
+// 通用文字工具类
+.price-text {
+  color: $danger;
+  font-weight: 700;
+}
