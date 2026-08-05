@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 5. computed 计算属性</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+        th { background: #f8f9fa; }
+        .running { color: #e83e8c; font-weight: bold; }
+        .elapsed { color: #6c757d; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 什么是计算属性 computed？</h2>
+        <p class="tip">💡 计算属性 = <strong>根据已有数据「推导」出新数据</strong>，并且自动缓存。<br>
+        &nbsp;&nbsp;• 依赖的数据没变 → 直接返回缓存结果，<b>不重新计算</b>（性能好）<br>
+        &nbsp;&nbsp;• 依赖的数据变了 → 自动重新计算，页面自动更新<br>
+        &nbsp;&nbsp;• 对比 methods：methods 每次调用都重新执行；computed 有缓存。</p>
+    </div>
+
+    <!-- ========== 基本用法 ========== -->
+    <div class="card">
+        <h2>① 基本用法：全名拼接（computed vs methods 对比）</h2>
+        <p>姓：<input v-model="firstName" placeholder="姓"></p>
+        <p>名：<input v-model="lastName" placeholder="名"></p>
+        <p>用 computed 计算的全名：<strong>{{ fullName }}</strong></p>
+        <p>用 methods 调用的全名：<strong>{{ getFullName() }}</strong>（每次调用都执行函数）</p>
+        <p class="elapsed">⏱ 统计：computed 执行了 <span class="running">{{ computedCount }}</span> 次（带缓存，只有依赖变化才 +1）<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;methods 执行了 <span class="running">{{ methodCount }}</span> 次（每次渲染都会 +1）</p>
+        <button @click="refresh++">点我触发一次重新渲染（看看上面的统计有什么变化）</button>
+    </div>
+
+    <!-- ========== 购物车 ========== -->
+    <div class="card">
+        <h2>② 经典场景：购物车总价（computed 依赖多个数据）</h2>
+        <table>
+            <tr>
+                <th>商品</th><th>单价</th><th>数量</th><th>小计</th>
+            </tr>
+            <tr v-for="item in cart" :key="item.id">
+                <td>{{ item.name }}</td>
+                <td>￥{{ item.price }}</td>
+                <td>
+                    <button @click="item.quantity > 0 && item.quantity--">-</button>
+                    {{ item.quantity }}
+                    <button @click="item.quantity++">+</button>
+                </td>
+                <td>￥{{ item.price * item.quantity }}</td>
+            </tr>
+        </table>
+        <p>商品总数：<strong>{{ totalCount }}</strong> 件</p>
+        <p>合计金额：<strong style="color:#e83e8c;font-size:1.3em;">￥{{ totalPrice }}</strong></p>
+        <p class="tip">💡 totalCount 和 totalPrice 都是 computed：只要购物车里任何数量变化，它们自动更新。</p>
+    </div>
+
+    <!-- ========== 筛选 ========== -->
+    <div class="card">
+        <h2>③ 经典场景：搜索筛选列表（computed 依赖输入框）</h2>
+        <input v-model="keyword" placeholder="输入关键词搜索学生...">
+        <p>共 {{ filteredStudents.length }} 个结果</p>
+        <ul>
+            <li v-for="s in filteredStudents" :key="s.id">{{ s.name }} - {{ s.score }} 分</li>
+        </ul>
+        <p class="tip">💡 这里不能在原数组上 filter（会破坏原数据），而是用一个 computed 返回「过滤后的新数组」。</p>
+    </div>
+
+    <!-- ========== 可写 computed ========== -->
+    <div class="card">
+        <h2>④ 进阶：可写 computed（getter + setter）</h2>
+        <p>把 firstName 和 lastName 合起来，还能通过 <code>fullName2 = '新名字'</code> 反推拆分写回！</p>
+        <p>当前 fullName2 = <strong>{{ fullName2 }}</strong></p>
+        <input v-model="fullName2" placeholder="直接改全名试试" style="width:250px;">
+        <p class="elapsed">姓 = {{ firstName2 }}，名 = {{ lastName2 }}（你修改全名时，setter 会把名字拆开写回）</p>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+const fullName2 = computed({
+    get: () =&gt; firstName2.value + ' ' + lastName2.value,  <span style="color:#7f848e">// 读取时</span>
+    set: (val) =&gt; {                                       <span style="color:#7f848e">// 赋值时</span>
+        [firstName2.value, lastName2.value] = val.split(' ');
+    }
+});</pre>
+    </div>
+
+    </div>
+<script>
+        const { createApp, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                // ===== ① computed 基本用法 =====
+                const firstName = ref('张');
+                const lastName = ref('三');
+                const refresh = ref(0);
+                const computedCount = ref(0);
+                const methodCount = ref(0);
+
+                // computed 自动缓存：依赖没变就不执行
+                const fullName = computed(() => {
+                    computedCount.value++;
+                    return firstName.value + ' ' + lastName.value;
+                });
+
+                // methods 写法：每次渲染都执行
+                function getFullName() {
+                    methodCount.value++;
+                    return firstName.value + ' ' + lastName.value;
+                }
+
+                // ===== ② 购物车 =====
+                const cart = ref([
+                    { id: 1, name: '苹果', price: 5, quantity: 3 },
+                    { id: 2, name: '香蕉', price: 3, quantity: 5 },
+                    { id: 3, name: '西瓜', price: 20, quantity: 1 }
+                ]);
+                const totalCount = computed(() =>
+                    cart.value.reduce((sum, i) => sum + i.quantity, 0)
+                );
+                const totalPrice = computed(() =>
+                    cart.value.reduce((sum, i) => sum + i.price * i.quantity, 0)
+                );
+
+                // ===== ③ 搜索筛选 =====
+                const keyword = ref('');
+                const students = ref([
+                    { id: 1, name: '小明', score: 92 },
+                    { id: 2, name: '小红', score: 88 },
+                    { id: 3, name: '小刚', score: 75 },
+                    { id: 4, name: '小丽', score: 95 },
+                    { id: 5, name: '小王', score: 62 }
+                ]);
+                const filteredStudents = computed(() =>
+                    students.value.filter(s => s.name.includes(keyword.value))
+                );
+
+                // ===== ④ 可写 computed =====
+                const firstName2 = ref('李');
+                const lastName2 = ref('四');
+                const fullName2 = computed({
+                    get: () => firstName2.value + ' ' + lastName2.value,
+                    set: (val) => {
+                        const parts = val.split(' ');
+                        firstName2.value = parts[0] || '';
+                        lastName2.value = parts.slice(1).join(' ') || '';
+                    }
+                });
+
+                return {
+                    firstName, lastName, refresh, computedCount, methodCount,
+                    fullName, getFullName,
+                    cart, totalCount, totalPrice,
+                    keyword, students, filteredStudents,
+                    firstName2, lastName2, fullName2
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

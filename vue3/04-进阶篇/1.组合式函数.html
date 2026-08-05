@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 12. 组合式函数（Composables）</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .demo-box { flex: 1; min-width: 260px; border: 1px solid #dee2e6; border-radius: 10px; padding: 14px; }
+        .badge { background: #ffe0e6; color: #e83e8c; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 什么是组合式函数？</h2>
+        <p class="tip">💡 组合式函数（Composable）= <strong>用「函数」把一段「带状态的逻辑」封装起来，到处复用</strong>。<br>
+        &nbsp;&nbsp;• 命名规范：以 <code>use</code> 开头（如 useCounter、useMouse、useFetch）<br>
+        &nbsp;&nbsp;• 函数里可以用 ref / computed / watch / 生命周期 —— 它和组件里的 setup 一样能干任何事<br>
+        &nbsp;&nbsp;• 本质：它就是 Vue 版的「自定义 Hook」（React 的 custom hook 概念一样）<br>
+        &nbsp;&nbsp;• 好处：多个组件共享同一段逻辑，改一处、处处生效</p>
+    </div>
+
+    <div class="card">
+        <h2>① 经典例子：useCounter 计数器</h2>
+        <div id="app">
+            <div class="demo-row">
+                <div class="demo-box">
+                    <h3>🅰 计数器 1</h3>
+                    <p>数值：<strong>{{ c1.count }}</strong>（{{ c1.count >= 10 ? '达到10啦！' : '继续加油' }}）</p>
+                    <button @click="c1.increment">+1</button>
+                    <button @click="c1.decrement">-1</button>
+                    <button @click="c1.reset">重置</button>
+                </div>
+                <div class="demo-box">
+                    <h3>🅱 计数器 2（同一逻辑，独立状态）</h3>
+                    <p>数值：<strong>{{ c2.count }}</strong></p>
+                    <button @click="c2.increment">+1</button>
+                    <button @click="c2.decrement">-1</button>
+                    <button @click="c2.reset">重置</button>
+                </div>
+            </div>
+            <p class="tip">💡 两个计数器用的是<b>同一个函数</b>，但各自独立计数——组合式函数每次调用都创建「新的一份」状态。</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#c678dd">// 定义一个组合式函数（通常单独放一个 js 文件）</span>
+function useCounter(initial = 0) {
+    const count = ref(initial);           <span style="color:#7f848e">// 状态</span>
+    const isOverTen = computed(() =&gt; count.value &gt;= 10);  <span style="color:#7f848e">// 派生状态</span>
+    function increment() { count.value++; }  <span style="color:#7f848e">// 方法</span>
+    function decrement() { count.value--; }
+    function reset() { count.value = initial; }
+    return { count, isOverTen, increment, decrement, reset };  <span style="color:#7f848e">// 返回出去</span>
+}
+
+<span style="color:#7f848e">// 组件里使用（想用几次用几次）</span>
+const c1 = useCounter(0);
+const c2 = useCounter(100);</pre>
+    </div>
+
+    <div class="card">
+        <h2>② 经典例子：useMouse 鼠标位置（含事件绑定与清理）</h2>
+        <div id="app2">
+            <div class="demo-box" style="position:relative;height:180px;overflow:hidden;">
+                <p>🖱 在下面这块区域里移动鼠标：</p>
+                <p>坐标：X = <strong>{{ mouse.x }}</strong>，Y = <strong>{{ mouse.y }}</strong></p>
+                <div
+                    class="cursor-dot"
+                    :style="{ left: mouse.x + 'px', top: mouse.y + 'px' }"
+                    style="width:12px;height:12px;background:#e83e8c;border-radius:50%;position:absolute;pointer-events:none;transform:translate(-50%,-50%);"
+                ></div>
+            </div>
+            <p class="tip">💡 useMouse 内部：<br>
+            &nbsp;&nbsp;• <code>onMounted</code> 里给 window 绑定 mousemove 事件<br>
+            &nbsp;&nbsp;• <code>onUnmounted</code> 里移除事件（<b>必须清理！</b>否则组件销毁后监听器还挂着，浪费内存甚至报错）<br>
+            &nbsp;&nbsp;这就是「组合式函数」比普通工具函数强的地方：它和组件的生命周期融为一体。</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+function useMouse() {
+    const x = ref(0);
+    const y = ref(0);
+
+    function update(e) { x.value = e.clientX; y.value = e.clientY; }
+
+    onMounted(() =&gt; window.addEventListener('mousemove', update));
+    onUnmounted(() =&gt; window.removeEventListener('mousemove', update));
+
+    return { x, y };
+}</pre>
+    </div>
+
+    <div class="card">
+        <h2>③ 进阶例子：useLocalStorage（数据自动同步到本地存储）</h2>
+        <div id="app3">
+            <h3>💾 用户偏好设置（刷新页面后仍在！）</h3>
+            <p>昵称：<input v-model="settings.username" placeholder="输入昵称" style="padding:8px;border:1px solid #ddd;border-radius:6px;"></p>
+            <p>主题：
+                <select v-model="settings.theme" style="padding:8px;border:1px solid #ddd;border-radius:6px;">
+                    <option value="light">亮色</option>
+                    <option value="dark">暗色</option>
+                </select>
+            </p>
+            <p style="color:#6c757d;font-size:0.85em;">📌 原理：useLocalStorage 内部用 watch 监听数据，变化时自动写入 localStorage。<br>
+            🔄 现在刷新页面试试——数据不会丢！</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#c678dd">// 通用组合式函数：任何「需要持久化」的数据都能用它</span>
+function useLocalStorage(key, initial) {
+    <span style="color:#7f848e">// 初始值：优先从 localStorage 读，读不到用传入的初始值</span>
+    const data = ref(JSON.parse(localStorage.getItem(key)) ?? initial);
+
+    <span style="color:#7f848e">// 深度监听 data，变化就写入 localStorage</span>
+    watch(data, (val) =&gt; localStorage.setItem(key, JSON.stringify(val)), { deep: true });
+
+    return data;
+}
+
+<span style="color:#7f848e">// 使用：一行代码获得「带持久化」的响应式数据</span>
+const settings = useLocalStorage('my-settings', { username: '游客', theme: 'light' });</pre>
+    </div>
+
+    <div class="card">
+        <h2>④ 组合式函数 vs mixins（Vue 2 时代）</h2>
+        <table style="border-collapse:collapse;width:100%;">
+            <tr style="background:#f8f9fa;"><th style="border:1px solid #dee2e6;padding:8px;">对比项</th><th style="border:1px solid #dee2e6;padding:8px;">mixins（Vue2）</th><th style="border:1px solid #dee2e6;padding:8px;">组合式函数（Vue3）</th></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">数据来源是否清晰</td><td style="border:1px solid #dee2e6;padding:8px;">❌ 不知哪个 mixin 提供</td><td style="border:1px solid #dee2e6;padding:8px;">✅ 从函数返回，一目了然</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">命名冲突</td><td style="border:1px solid #dee2e6;padding:8px;">❌ 多个 mixin 同名属性互相覆盖</td><td style="border:1px solid #dee2e6;padding:8px;">✅ 可以解构重命名</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">传参</td><td style="border:1px solid #dee2e6;padding:8px;">❌ 无法传参</td><td style="border:1px solid #dee2e6;padding:8px;">✅ useCounter(100) 随意传参</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">复用粒度</td><td style="border:1px solid #dee2e6;padding:8px;">❌ 整个 mixin 全量合并</td><td style="border:1px solid #dee2e6;padding:8px;">✅ 想用哪个函数用哪个</td></tr>
+        </table>
+        <p class="tip">🎯 结论：Vue 3 官方推荐用组合式函数替代 mixins，这是组合式 API 的最大价值！</p>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, onMounted, onUnmounted } = Vue;
+
+        // ========== 定义组合式函数（通常单独放在 composables/ 目录下）==========
+
+        // ① useCounter：计数器逻辑
+        function useCounter(initial = 0) {
+            const count = ref(initial);
+            const isOverTen = computed(() => count.value >= 10);
+            function increment() { count.value++; }
+            function decrement() { count.value--; }
+            function reset() { count.value = initial; }
+            return { count, isOverTen, increment, decrement, reset };
+        }
+
+        // ② useMouse：鼠标位置（带事件绑定与清理）
+        function useMouse() {
+            const x = ref(0);
+            const y = ref(0);
+            function update(e) { x.value = e.clientX; y.value = e.clientY; }
+            onMounted(() => window.addEventListener('mousemove', update));
+            onUnmounted(() => window.removeEventListener('mousemove', update));
+            return { x, y };
+        }
+
+        // ③ useLocalStorage：持久化数据
+        function useLocalStorage(key, initial) {
+            // 尝试从 localStorage 读取已有数据
+            const stored = localStorage.getItem(key);
+            const data = ref(stored !== null ? JSON.parse(stored) : initial);
+            // 深度监听，变化自动写入
+            watch(data, (val) => {
+                localStorage.setItem(key, JSON.stringify(val));
+            }, { deep: true });
+            return data;
+        }
+
+        // ========== 在组件中使用 ==========
+
+        // ① 计数器（两个实例）
+        createApp({
+            setup() {
+                const c1 = useCounter(0);    // 从 0 开始
+                const c2 = useCounter(100);  // 从 100 开始
+                return { c1, c2 };
+            }
+        }).mount('#app');
+
+        // ② 鼠标位置
+        createApp({
+            setup() {
+                const mouse = useMouse();
+                return { mouse };
+            }
+        }).mount('#app2');
+
+        // ③ 持久化设置
+        createApp({
+            setup() {
+                const settings = useLocalStorage('vue3-my-settings', { username: '游客', theme: 'light' });
+                return { settings };
+            }
+        }).mount('#app3');
+    </script>
+</body>
+</html>

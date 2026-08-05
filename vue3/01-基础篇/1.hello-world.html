@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 1. Hello World（第一个应用）</title>
+    <!-- Vue 3 全局构建版（学习用 dev 版，报错信息更友好） -->
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #35a06e; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <!-- =============== 知识点 1：最基础的渲染 =============== -->
+    <div class="card">
+        <h2>① {{ }} 插值语法</h2>
+        <p class="tip">💡 Vue 的核心思想：声明式渲染。你只关心「数据是什么样」，Vue 帮你更新「页面是什么样」。</p>
+        <!-- {{ }} 双花括号 = 插值表达式，会自动读取 data 中的数据 -->
+        <p>问候语：{{ message }}</p>
+        <p>反转后的问候语：{{ message.split('').reverse().join('') }}（插值里可以写简单的 JS 表达式）</p>
+        <p>当前时间戳：{{ Date.now() }}</p>
+    </div>
+
+    <!-- =============== 知识点 2：双向绑定初体验 =============== -->
+    <div class="card">
+        <h2>② v-model 双向绑定</h2>
+        <p class="tip">💡 <code>v-model</code> 让「页面输入」和「数据」保持同步：改了输入框，message 也跟着变！</p>
+        <input v-model="message" placeholder="输入点什么..." style="padding:8px;width:300px;border:1px solid #ddd;border-radius:6px;">
+        <p>你输入的内容实时显示在这里：<strong>{{ message }}</strong></p>
+    </div>
+
+    <!-- =============== 知识点 3：事件处理 =============== -->
+    <div class="card">
+        <h2>③ v-on:click（@click）事件</h2>
+        <p class="tip">💡 <code>@click</code> 是 <code>v-on:click</code> 的简写，用来监听 DOM 事件。</p>
+        <p>点击次数：{{ count }}</p>
+        <button @click="count++">点我 +1（直接在模板里写表达式）</button>
+        <button @click="addCount(5)">点我 +5（调用方法）</button>
+    </div>
+
+    <!-- =============== 知识点 4：条件渲染 =============== -->
+    <div class="card">
+        <h2>④ v-if 条件渲染</h2>
+        <p class="tip">💡 <code>v-if</code> 为 true 才渲染元素，false 则直接从 DOM 中移除。</p>
+        <button @click="show = !show">切换显示 / 隐藏</button>
+        <p v-if="show">✅ 当前是显示状态（v-if 控制）</p>
+        <p v-else>❌ 当前被 v-if 隐藏了</p>
+    </div>
+
+    <!-- =============== 知识点 5：列表渲染 =============== -->
+    <div class="card">
+        <h2>⑤ v-for 列表渲染</h2>
+        <p class="tip">💡 <code>v-for</code> 遍历数组渲染列表，记得写 <code>:key</code>（唯一标识，帮助 Vue 高效更新）。</p>
+        <ul>
+            <li v-for="(tech, index) in techStack" :key="index">
+                {{ index + 1 }}. {{ tech }} —— 长度：{{ tech.length }}
+            </li>
+        </ul>
+    </div>
+
+    <!-- =============== 知识点 6：属性绑定 =============== -->
+    <div class="card">
+        <h2>⑥ v-bind（:）属性绑定</h2>
+        <p class="tip">💡 <code>:href</code> 是 <code>v-bind:href</code> 的简写，把「HTML 属性」和「数据」绑定起来。</p>
+        <p>动态属性：<code>v-bind</code> 简写为 <code>:</code></p>
+        <a :href="link" target="_blank" style="color:#42b983;">点击访问 {{ link }}</a>
+        <p>动态 class：根据布尔值切换样式类</p>
+        <div :class="{ highlight: isHighlight }" style="padding:10px;border-radius:6px;">
+            这一行的背景颜色由 isHighlight 控制（现在是 {{ isHighlight }}）
+        </div>
+        <button @click="isHighlight = !isHighlight">切换高亮样式</button>
+    </div>
+
+    </div>
+<script>
+        // ============ 关键区别（对比 Vue 2） ============
+        // Vue 2:  new Vue({ el: '#app', ... })
+        // Vue 3:  Vue.createApp({ ... }).mount('#app')
+        //
+        // Vue 3 中 data 必须是一个【函数】返回对象（Vue2 也可，但 Vue3 强制）
+        // 这样可以保证每个组件实例都有自己的独立数据
+
+        const { createApp, ref } = Vue;  // 从全局 Vue 对象中解构出 API（组合式 API 从这开始）
+
+        createApp({
+            // ---------- 组合式 API（Composition API）----------
+            // setup() 是组合式 API 的入口，所有的响应式数据和方法都在这里定义
+            setup() {
+                // ref()：创建一个响应式数据（基础类型用 ref，后面会详细讲）
+                const message = ref('你好，Vue 3！');
+                const count = ref(0);
+                const show = ref(true);
+                const isHighlight = ref(false);
+                const link = ref('https://cn.vuejs.org');
+
+                // 普通数组，不用响应式，因为内容是静态的（后面讲 reactive 时再深挖）
+                const techStack = ['HTML', 'CSS', 'JavaScript', 'Vue 3', 'Vite'];
+
+                // 方法：普通函数即可
+                function addCount(n) {
+                    count.value += n;   // 注意！ref 数据要用 .value 访问和修改
+                }
+
+                // 必须把所有要暴露给模板的东西 return 出去，模板才能用
+                return { message, count, show, isHighlight, link, techStack, addCount };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

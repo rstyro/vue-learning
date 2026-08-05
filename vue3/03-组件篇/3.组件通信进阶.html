@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 10. 组件通信进阶</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .tree { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; margin: 12px 0; }
+        .box { border: 2px solid #42b983; border-radius: 8px; padding: 12px; margin: 8px 0; }
+        .deep { border-color: #2196f3; background: #f0f7ff; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 组件通信全景图</h2>
+        <p class="tip">💡 上一课讲了 props（父→子）和 emit（子→父）。但现实中组件可能隔了多层，于是 Vue 还提供了：<br>
+        &nbsp;&nbsp;1️⃣ <strong>v-model 组件</strong>——自定义「双向绑定」的组件<br>
+        &nbsp;&nbsp;2️⃣ <strong>defineExpose</strong>——父组件直接调用子组件的方法<br>
+        &nbsp;&nbsp;3️⃣ <strong>provide / inject</strong>——祖孙之间跨层传数据<br>
+        &nbsp;&nbsp;4️⃣ <strong>全局状态管理（Pinia）</strong>——任意组件共享数据（后面章节介绍）</p>
+    </div>
+
+    <!-- ========== v-model 组件 ========== -->
+    <div class="card">
+        <h2>① v-model 自定义组件：把「显示值 + 改值事件」打包成双向绑定</h2>
+        <div id="app">
+            <h3>温度计组件（自定义 v-model 组件）</h3>
+            <p>父组件维护的温度：<strong style="color:#e83e8c;">{{ temp }} ℃</strong></p>
+            <temp-meter v-model="temp" />
+            <p class="tip">💡 组件上使用 <code>v-model="temp"</code> 等价于：<br>
+            <code>&lt;temp-meter :model-value="temp" @update:model-value="temp = $event" /&gt;</code><br>
+            子组件内部：接收 <code>props.modelValue</code>，点击按钮时 <code>emit('update:modelValue', 新值)</code></p>
+        </div>
+    </div>
+
+    <!-- ========== defineExpose ========== -->
+    <div class="card">
+        <h2>② defineExpose：父组件调用子组件的内部方法</h2>
+        <div id="app2">
+            <h3>倒计时器组件（父组件调用子组件方法）</h3>
+            <countdown ref="countdownRef" :seconds="10" />
+            <button @click="startCountdown">调用子组件的 start() 方法</button>
+            <button @click="resetCountdown">调用子组件的 reset() 方法</button>
+            <p class="tip">💡 步骤：<br>
+            &nbsp;&nbsp;1️⃣ 子组件把方法暴露出来（单文件组件用 <code>defineExpose({ start, reset })</code>；本页纯 JS 环境下 setup return 出去即可）<br>
+            &nbsp;&nbsp;2️⃣ 父组件给子组件加 <code>ref="名字"</code><br>
+            &nbsp;&nbsp;3️⃣ 父组件通过 <code>refs.名字.start()</code> 调用<br>
+            &nbsp;&nbsp;⚠️ 注意：在 <code>&lt;script setup&gt;</code> 中，子组件必须显式 defineExpose，父组件才能访问到内部的东西</p>
+        </div>
+    </div>
+
+    <!-- ========== provide/inject ========== -->
+    <div class="card">
+        <h2>③ provide / inject：跨层传递（爷爷直接给孙子）</h2>
+        <div id="app3">
+            <h3>🌳 组件树：爷爷 → 爸爸 → 孙子</h3>
+            <div class="tree">
+                <strong>👴 爷爷组件</strong>（provide 提供 theme 和 user）
+                <div class="box">
+                    <strong>👨 爸爸组件</strong>（什么都不用做，只管传递）
+                    <div class="box deep">
+                        <strong>👦 孙子组件</strong>（inject 注入使用）<br><br>
+                        🎨 主题：<strong>{{ theme }}</strong><br>
+                        👤 用户：<strong>{{ user.name }}</strong>（{{ user.age }} 岁）
+                    </div>
+                </div>
+            </div>
+            <p class="tip">💡 provide/inject 专门解决「跨层传递」：爷爷直接给孙子，中间层（爸爸）不用管。<br>
+            &nbsp;&nbsp;• <code>provide('key', 值)</code>：祖先提供<br>
+            &nbsp;&nbsp;• <code>inject('key')</code>：后代接收<br>
+            &nbsp;&nbsp;• 适合：主题、用户信息、全局配置等「贯穿整个组件树」的数据</p>
+        </div>
+    </div>
+
+    <!-- ========== 通信方式小结 ========== -->
+    <div class="card">
+        <h2>④ 通信方式怎么选？（决策树）</h2>
+        <table style="border-collapse:collapse;width:100%;">
+            <tr style="background:#f8f9fa;"><th style="border:1px solid #dee2e6;padding:8px;">场景</th><th style="border:1px solid #dee2e6;padding:8px;">推荐方式</th></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">父子之间传数据</td><td style="border:1px solid #dee2e6;padding:8px;">props</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">子组件通知父组件</td><td style="border:1px solid #dee2e6;padding:8px;">emit</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">输入类组件双向绑定</td><td style="border:1px solid #dee2e6;padding:8px;">v-model</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">父组件调用子组件方法</td><td style="border:1px solid #dee2e6;padding:8px;">defineExpose + ref</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">跨很多层传递</td><td style="border:1px solid #dee2e6;padding:8px;">provide / inject</td></tr>
+            <tr><td style="border:1px solid #dee2e6;padding:8px;">任意组件共享全局状态</td><td style="border:1px solid #dee2e6;padding:8px;">Pinia（后面学）</td></tr>
+        </table>
+    </div>
+
+    <script>
+        const { createApp, ref, provide, inject, onMounted } = Vue;
+
+        // ===== ① v-model 组件 =====
+        const TempMeter = {
+            props: ['modelValue'],  // v-model 绑定的值，默认属性名是 modelValue
+            emits: ['update:modelValue'],  // v-model 更新事件
+            template: `
+                <div class="box">
+                    <p>🌡 温度显示：{{ modelValue }} ℃</p>
+                    <button @click="$emit('update:modelValue', modelValue - 1)">-1℃</button>
+                    <button @click="$emit('update:modelValue', modelValue + 1)">+1℃</button>
+                    <button @click="$emit('update:modelValue', 20)">重置 20℃</button>
+                </div>
+            `
+        };
+
+        createApp({
+            components: { TempMeter },
+            setup() {
+                const temp = ref(24);
+                return { temp };
+            }
+        }).mount('#app');
+
+        // ===== ② defineExpose 组件 =====
+        const Countdown = {
+            props: ['seconds'],
+            // 用模板字符串渲染
+            template: `
+                <div class="box" :style="{ borderColor: remaining === 0 ? '#e83e8c' : '#42b983' }">
+                    <p style="font-size:1.5em;">⏳ {{ remaining }} 秒</p>
+                    <p style="color:#6c757d;font-size:0.85em;">（组件内部状态：{{ running ? '运行中' : '已停止' }}）</p>
+                </div>
+            `,
+            setup(props) {
+                const remaining = ref(props.seconds);
+                const running = ref(false);
+                let timer = null;
+
+                function start() {
+                    if (running.value) return;
+                    running.value = true;
+                    timer = setInterval(() => {
+                        remaining.value--;
+                        if (remaining.value <= 0) {
+                            clearInterval(timer);
+                            running.value = false;
+                            remaining.value = 0;
+                        }
+                    }, 1000);
+                }
+                function reset() {
+                    clearInterval(timer);
+                    running.value = false;
+                    remaining.value = props.seconds;
+                }
+                function stop() {
+                    clearInterval(timer);
+                    running.value = false;
+                }
+
+                // 关键：把内部方法暴露给父组件
+                // 说明：在「单文件组件（.vue + <script setup>）」中，需要显式调用
+                //   defineExpose({ start, reset, stop })
+                // 本页是纯 JS 环境（setup 返回对象），return 出去的内容父组件就能通过 ref 访问到
+                return { remaining, running, start, reset, stop };
+            }
+        };
+
+        createApp({
+            components: { Countdown },
+            setup() {
+                const countdownRef = ref(null);  // 子组件引用
+                function startCountdown() {
+                    // 调用子组件的 start 方法
+                    countdownRef.value.start();
+                }
+                function resetCountdown() {
+                    countdownRef.value.reset();
+                }
+                return { countdownRef, startCountdown, resetCountdown };
+            }
+        }).mount('#app2');
+
+        // ===== ③ provide / inject 的完整实现见下方第二个 <script> 块 =====
+        // 说明：因为 #app3 需要三个嵌套组件完整演示，单独放在第二个 script 块中
+    </script>
+
+    <script>
+        // === ③ 的完整可用实现：用三个嵌套组件演示 provide/inject ===
+        const { createApp: createApp2, ref: ref2, provide: provide2, inject: inject2 } = Vue;
+
+        // 孙子组件
+        const Grandson = {
+            setup() {
+                const theme = inject2('theme');
+                const user = inject2('user');
+                return { theme, user };
+            },
+            template: `
+                <div style="border:2px solid #2196f3;border-radius:8px;padding:12px;background:#f0f7ff;">
+                    <strong>👦 孙子组件</strong><br>
+                    🎨 主题：<strong>{{ theme }}</strong><br>
+                    👤 用户：<strong>{{ user.name }}</strong>（{{ user.age }} 岁）
+                </div>
+            `
+        };
+
+        // 爸爸组件：什么都不用做，只负责嵌套（证明数据是「跳过」它传递的）
+        const Father = {
+            components: { Grandson },
+            template: `
+                <div style="border:2px solid #42b983;border-radius:8px;padding:12px;margin:8px 0;">
+                    <strong>👨 爸爸组件</strong>（我没有接收任何东西，孙子照样能拿到爷爷的数据）
+                    <div style="margin-top:8px;"><Grandson /></div>
+                </div>
+            `
+        };
+
+        // 爷爷组件：provide 数据
+        createApp2({
+            components: { Father },
+            setup() {
+                const theme = ref2('dark');
+                const user = ref2({ name: '李四', age: 30 });
+
+                // 提供数据给所有后代
+                provide2('theme', theme);
+                provide2('user', user);
+
+                return { theme, user };
+            },
+            template: `
+                <div style="border:2px dashed #42b983;border-radius:10px;padding:12px;">
+                    <strong>👴 爷爷组件</strong>（provide 提供 theme={{ theme }} 和 user={{ user.name }}）
+                    <div style="margin-top:8px;"><Father /></div>
+                </div>
+            `
+        }).mount('#app3');
+    </script>
+</body>
+</html>

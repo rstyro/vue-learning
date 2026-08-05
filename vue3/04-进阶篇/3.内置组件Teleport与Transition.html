@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 14. 内置组件（Teleport / Transition）</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-box { border: 1px solid #dee2e6; border-radius: 10px; padding: 14px; margin: 10px 0; }
+
+        /* Transition 动画相关样式 */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+        .slide-enter-active, .slide-leave-active { transition: all 0.4s ease; }
+        .slide-enter-from { opacity: 0; transform: translateX(-30px); }
+        .slide-leave-to { opacity: 0; transform: translateX(30px); }
+
+        .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
+        .list-enter-from, .list-leave-to { opacity: 0; transform: translateY(20px); }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 本课内容：两个好用的内置组件</h2>
+        <p class="tip">💡 Vue 3 内置了几个特殊组件，直接可用：<br>
+        &nbsp;&nbsp;• <code>&lt;Teleport&gt;</code>：把内容「传送」到页面的其它位置（比如 body）渲染<br>
+        &nbsp;&nbsp;• <code>&lt;Transition&gt;</code>：给元素的显示/隐藏添加过渡动画<br>
+        &nbsp;&nbsp;• 还有 <code>&lt;TransitionGroup&gt;</code>（列表动画）、<code>&lt;KeepAlive&gt;</code>（已学过）、<code>&lt;Suspense&gt;</code>（异步组件）</p>
+    </div>
+
+    <!-- ========== Teleport ========== -->
+    <div class="card">
+        <h2>① Teleport：把弹窗「传送」到 body 下</h2>
+        <div id="app">
+            <h3>问题：弹窗被父容器裁剪 / 遮挡</h3>
+            <p>下面这个容器有 <code>overflow: hidden</code>（模拟被裁剪的场景）：</p>
+            <div class="demo-box" style="overflow:hidden;height:120px;position:relative;">
+                <p>🔒 我是容器（overflow:hidden）</p>
+                <!-- 普通弹窗：会被 overflow:hidden 裁剪 -->
+                <div v-if="showNormalModal" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;z-index:10;padding:10px;">
+                    😵 普通弹窗被裁剪了！只能看到容器范围内的一部分
+                </div>
+                <button @click="showNormalModal = !showNormalModal" style="position:relative;z-index:11;">
+                    {{ showNormalModal ? '关闭普通弹窗' : '打开普通弹窗（会被裁剪）' }}
+                </button>
+            </div>
+
+            <h3>✅ 用 Teleport 传送到 body：完全不受容器影响</h3>
+            <button @click="showTeleportModal = !showTeleportModal">
+                {{ showTeleportModal ? '关闭 Teleport 弹窗' : '打开 Teleport 弹窗（传送到 body）' }}
+            </button>
+
+            <!-- Teleport 内容会渲染到 body 里，而不是当前位置 -->
+            <Teleport to="body">
+                <div v-if="showTeleportModal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;">
+                    <div style="background:#fff;border-radius:10px;padding:24px;min-width:300px;text-align:center;">
+                        <h3>🚀 我是 Teleport 弹窗</h3>
+                        <p>我在 HTML 源码里写在卡片内部，<br>但实际渲染到了 <code>&lt;body&gt;</code> 下！</p>
+                        <p style="color:#6c757d;font-size:0.85em;">按 F12 查看元素：会发现这个弹窗的父节点是 body，<br>而不是卡片容器——这就是「传送」。</p>
+                        <button @click="showTeleportModal = false">关闭</button>
+                    </div>
+                </div>
+            </Teleport>
+
+            <p class="tip">💡 Teleport 的经典使用场景：<br>
+            &nbsp;&nbsp;• 弹窗 / 对话框 / 抽屉：避免被父级 overflow 或 z-index 影响<br>
+            &nbsp;&nbsp;• 全局提示（toast / notification）<br>
+            &nbsp;&nbsp;• 全屏遮罩、模态框</p>
+        </div>
+    </div>
+
+    <!-- ========== Transition ========== -->
+    <div class="card">
+        <h2>② Transition：显示/隐藏过渡动画</h2>
+        <div id="app2">
+            <h3>淡入淡出（fade）</h3>
+            <button @click="showFade = !showFade">切换</button>
+            <Transition name="fade">
+                <p v-if="showFade" style="background:#e8f5e9;padding:12px;border-radius:8px;">
+                    👋 我会淡入淡出（Transition + v-if/v-show）
+                </p>
+            </Transition>
+
+            <h3>滑入滑出（slide）</h3>
+            <button @click="showSlide = !showSlide">切换</button>
+            <Transition name="slide">
+                <p v-if="showSlide" style="background:#e3f2fd;padding:12px;border-radius:8px;">
+                    🎢 我会从左边滑进来，向右边滑出去
+                </p>
+            </Transition>
+
+            <h3>列表动画（TransitionGroup）</h3>
+            <button @click="addItem">添加</button>
+            <button @click="removeFirst">移除第一个</button>
+            <TransitionGroup name="list" tag="ul" style="list-style:none;padding:0;">
+                <li v-for="item in items" :key="item.id" style="background:#f3e5f5;padding:8px 12px;margin:4px 0;border-radius:6px;">
+                    📦 {{ item.text }}
+                </li>
+            </TransitionGroup>
+
+            <p class="tip">💡 Transition 的核心是「CSS 类约定」：<br>
+            &nbsp;&nbsp;• <code>xxx-enter-from</code>：进入前的初始状态<br>
+            &nbsp;&nbsp;• <code>xxx-enter-active</code>：进入过程中的过渡属性<br>
+            &nbsp;&nbsp;• <code>xxx-enter-to</code>：进入后的结束状态（一般省略，默认是元素本来样式）<br>
+            &nbsp;&nbsp;• 离开同理：<code>xxx-leave-from / leave-active / leave-to</code><br>
+            &nbsp;&nbsp;• 只要 CSS 类名写对，Vue 自动帮你切换，无需 JS 动画代码！</p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        // ===== ① Teleport 演示 =====
+        createApp({
+            setup() {
+                const showNormalModal = ref(false);
+                const showTeleportModal = ref(false);
+                return { showNormalModal, showTeleportModal };
+            }
+        }).mount('#app');
+
+        // ===== ② Transition 演示 =====
+        createApp({
+            setup() {
+                const showFade = ref(true);
+                const showSlide = ref(true);
+                const items = ref([
+                    { id: 1, text: '第一条' },
+                    { id: 2, text: '第二条' },
+                    { id: 3, text: '第三条' }
+                ]);
+                function addItem() {
+                    items.value.push({ id: Date.now(), text: '新条目 ' + (items.value.length + 1) });
+                }
+                function removeFirst() {
+                    items.value.shift();
+                }
+                return { showFade, showSlide, items, addItem, removeFirst };
+            }
+        }).mount('#app2');
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 6. watch 侦听器</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .log-box { background: #282c34; color: #98c379; padding: 12px; border-radius: 8px; font-family: Consolas, monospace; min-height: 60px; max-height: 200px; overflow-y: auto; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 watch 侦听器是干什么的？</h2>
+        <p class="tip">💡 <strong>watch</strong> = 监听某个数据，<b>当它变化时执行一段逻辑</b>（副作用操作）。<br>
+        &nbsp;&nbsp;• 典型场景：搜索防抖、保存草稿、数据变化后调接口、localStorage 同步<br>
+        &nbsp;&nbsp;• 对比 computed：computed 用于<b>计算新值</b>，watch 用于<b>执行操作</b>。<br>
+        &nbsp;&nbsp;• 记口诀：<strong>computed 算东西，watch 做事情</strong>。</p>
+    </div>
+
+    <!-- ========== 基本用法 ========== -->
+    <div class="card">
+        <h2>① 基本用法：监听输入（newVal / oldVal）</h2>
+        <input v-model="keyword" placeholder="输入点什么，下面会记录变化历史" style="width:300px;">
+        <p>当前值：<strong>{{ keyword }}</strong></p>
+        <div class="log-box">
+            <div v-for="(log, i) in logs" :key="i">{{ log }}</div>
+            <span v-if="logs.length === 0">（还没有变化记录，输入文字试试）</span>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+watch(keyword, (newVal, oldVal) =&gt; {
+    logs.value.push(`变了：${oldVal} → ${newVal}`);
+});</pre>
+    </div>
+
+    <!-- ========== 监听对象 ========== -->
+    <div class="card">
+        <h2>② 监听对象：需要 deep 深度监听</h2>
+        <p>表单：<input v-model="form.name" placeholder="名字"> <input v-model="form.age" type="number" placeholder="年龄"></p>
+        <p class="warn">⚠️ 直接 <code>watch(form, ...)</code> 监听对象，<b>改对象内部属性不会触发</b>（默认是浅层监听，只有整个对象被替换才触发）<br>
+        ✅ 加 <code>{ deep: true }</code> 才能监听到内部属性的变化。</p>
+        <div class="log-box">
+            <div v-for="(log, i) in deepLogs" :key="i">{{ log }}</div>
+            <span v-if="deepLogs.length === 0">（改上面的表单试试）</span>
+        </div>
+    </div>
+
+    <!-- ========== 立即执行 ========== -->
+    <div class="card">
+        <h2>③ immediate：一上来就执行一次</h2>
+        <p class="tip">💡 默认 watch 只有「变化后」才触发。<br>
+        加 <code>{ immediate: true }</code> 后，页面一加载就执行一次回调（常用于初始化时也做同样逻辑）。</p>
+        <select v-model="selectedCity">
+            <option value="北京">北京</option>
+            <option value="上海">上海</option>
+            <option value="深圳">深圳</option>
+            <option value="广州">广州</option>
+        </select>
+        <p>已选择：{{ selectedCity }}</p>
+        <p class="elapsed">调用记录（含首次立即执行）：</p>
+        <div class="log-box">
+            <div v-for="(log, i) in cityLogs" :key="i">{{ log }}</div>
+        </div>
+    </div>
+
+    <!-- ========== 多个来源 ========== -->
+    <div class="card">
+        <h2>④ 监听多个数据源（数组）</h2>
+        <input v-model="w" type="number" placeholder="宽"> ×
+        <input v-model="h" type="number" placeholder="高">
+        <p>面积：{{ area }}</p>
+        <p class="tip">💡 <code>watch([w, h], () =&gt; {...})</code>：任一变化都会触发；回调参数是「新值数组」。</p>
+    </div>
+
+    <!-- ========== watchEffect ========== -->
+    <div class="card">
+        <h2>⑤ watchEffect：自动收集依赖，不用手动指定监听谁</h2>
+        <p class="tip">💡 <strong>watchEffect</strong> 不指定监听对象，它会<b>自动追踪函数里用到的所有响应式数据</b>，任何一个变了就重跑。<br>
+        &nbsp;&nbsp;• watch：要明确说「我监听谁」<br>
+        &nbsp;&nbsp;• watchEffect：不用指定，「函数里用到谁就监听谁」</p>
+        <p>单价：<input v-model.number="price" type="number"> × 数量：<input v-model.number="num" type="number"></p>
+        <p>总价（watchEffect 自动更新）：<strong>{{ total }}</strong></p>
+        <p class="elapsed">（watchEffect 里用到了 price 和 num，两者任一变化都会重算）</p>
+    </div>
+
+    <!-- ========== 停止监听 ========== -->
+    <div class="card">
+        <h2>⑥ 手动停止监听（watch 返回一个停止函数）</h2>
+        <p>点击次数：<strong>{{ clicks }}</strong></p>
+        <button @click="clicks++">点我</button>
+        <button @click="startWatch">开始监听点击数</button>
+        <button @click="stopWatch">停止监听</button>
+        <div class="log-box">
+            <div v-for="(log, i) in clickLogs" :key="i">{{ log }}</div>
+            <span v-if="clickLogs.length === 0">（点击「开始监听」后再点「点我」试试）</span>
+        </div>
+    </div>
+
+    </div>
+<script>
+        const { createApp, ref, computed, watch, watchEffect } = Vue;
+
+        createApp({
+            setup() {
+                // ===== ① 基本用法 =====
+                const keyword = ref('');
+                const logs = ref([]);
+                watch(keyword, (newVal, oldVal) => {
+                    logs.value.push(`变化：${oldVal || '(空)'} → ${newVal}`);
+                    if (logs.value.length > 30) logs.value.shift(); // 限制条数
+                });
+
+                // ===== ② 深度监听 =====
+                const form = ref({ name: '张三', age: 20 });
+                const deepLogs = ref([]);
+                // 不写 deep: true 的话，改 form.name 不会触发（默认浅层监听）
+                watch(form, (newVal, oldVal) => {
+                    deepLogs.value.push(`form 变化：name=${newVal.name}, age=${newVal.age}`);
+                }, { deep: true });
+
+                // ===== ③ immediate =====
+                const selectedCity = ref('北京');
+                const cityLogs = ref([]);
+                watch(selectedCity, (newVal) => {
+                    cityLogs.value.push(`已切换到：${newVal}`);
+                }, { immediate: true }); // 页面加载时立即执行一次
+
+                // ===== ④ 多数据源 =====
+                const w = ref(3);
+                const h = ref(4);
+                const area = computed(() => w.value * h.value);
+                watch([w, h], ([newW, newH]) => {
+                    console.log(`尺寸变化了：${newW} x ${newH}`);
+                });
+
+                // ===== ⑤ watchEffect =====
+                const price = ref(10);
+                const num = ref(2);
+                const total = ref(20);
+                watchEffect(() => {
+                    total.value = price.value * num.value; // 自动追踪 price 和 num
+                });
+
+                // ===== ⑥ 停止监听 =====
+                const clicks = ref(0);
+                const clickLogs = ref([]);
+                let stop = null; // 保存停止函数
+
+                function startWatch() {
+                    // 先停掉旧的，避免重复监听
+                    if (stop) stop();
+                    stop = watch(clicks, (newVal) => {
+                        clickLogs.value.push(`点击次数变为：${newVal}`);
+                    });
+                }
+                function stopWatch() {
+                    if (stop) { stop(); stop = null; }
+                }
+
+                return {
+                    keyword, logs,
+                    form, deepLogs,
+                    selectedCity, cityLogs,
+                    w, h, area,
+                    price, num, total,
+                    clicks, clickLogs, startWatch, stopWatch
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

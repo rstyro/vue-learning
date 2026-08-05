@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 9. 插槽 slot</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-box { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; margin: 12px 0; }
+        .slot-tag { background: #ffe0e6; color: #e83e8c; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 插槽是干什么的？</h2>
+        <p class="tip">💡 插槽（slot）= 组件的<b>「占位符」</b>：组件把某个区域「挖个坑」，让使用方往坑里填内容。<br>
+        &nbsp;&nbsp;• props 传的是「数据」，slot 传的是「模板 / HTML 内容」<br>
+        &nbsp;&nbsp;• 经典例子：弹窗、卡片、导航栏——外壳是固定的，中间内容谁用谁填<br>
+        &nbsp;&nbsp;• 类比：组件是一个「带坑的模板」，使用方决定坑里放什么。</p>
+    </div>
+
+    <div class="card">
+        <h2>① 默认插槽：组件里的「坑」</h2>
+        <div id="app">
+            <!-- 使用 Card 组件，标签中间的内容会被塞进默认插槽 -->
+            <demo-card title="我的卡片">
+                <p>这是插槽里的内容 ①：普通的段落</p>
+                <p>这是插槽里的内容 ②：<button @click="slotMsg = '我点击了插槽里的按钮'">点我</button></p>
+                <p style="color:#42b983;">{{ slotMsg }}</p>
+            </demo-card>
+
+            <p class="tip">💡 卡片外壳（标题、边框、样式）在组件里写死；中间的正文是插槽，谁用谁填。</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#7f848e">&lt;!-- 组件内部（定义处）--&gt;</span>
+&lt;div class="card"&gt;
+    &lt;h3&gt;{{ title }}&lt;/h3&gt;
+    &lt;slot&gt;&lt;/slot&gt;   <span style="color:#7f848e">&lt;!-- 挖一个坑：使用方的内容会出现在这里 --&gt;</span>
+&lt;/div&gt;
+
+<span style="color:#7f848e">&lt;!-- 组件使用处 --&gt;</span>
+&lt;demo-card title="我的卡片"&gt;
+    &lt;p&gt;坑里的内容，随便填&lt;/p&gt;
+&lt;/demo-card&gt;</pre>
+    </div>
+
+    <div class="card">
+        <h2>② 默认内容：坑里先放点「默认货」</h2>
+        <div id="app2">
+            <!-- 不填内容：显示默认内容 -->
+            <demo-card2 title="没填内容的卡片" />
+            <!-- 填了内容：默认内容被覆盖 -->
+            <demo-card2 title="填了内容的卡片">
+                <strong style="color:#e83e8c;">我是外部填入的内容，覆盖了默认内容！</strong>
+            </demo-card2>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+&lt;slot&gt;
+    &lt;p&gt;我是默认内容，使用方不填就显示我&lt;/p&gt;
+&lt;/slot&gt;</pre>
+    </div>
+
+    <div class="card">
+        <h2>③ 具名插槽：一个组件开多个「坑」</h2>
+        <div id="app3">
+            <layout-box>
+                <template #header>
+                    <span class="slot-tag">header 插槽</span> 🚀 导航栏区域（红字来自 header 插槽）
+                </template>
+
+                <template #default>
+                    <span class="slot-tag">默认插槽</span> 📄 正文内容区域
+                </template>
+
+                <template #footer>
+                    <span class="slot-tag">footer 插槽</span> 📋 底部版权区域
+                </template>
+            </layout-box>
+            <p class="tip">💡 <code>#header</code> 是 <code>v-slot:header</code> 的简写。<br>
+            &nbsp;&nbsp;• 不带名字的坑叫「默认插槽」= <code>#default</code><br>
+            &nbsp;&nbsp;• 具名插槽让组件的结构更灵活：头、中、尾都可以由使用方定制。</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#7f848e">&lt;!-- 组件内部：开三个坑 --&gt;</span>
+&lt;header&gt;&lt;slot name="header"&gt;&lt;/slot&gt;&lt;/header&gt;
+&lt;main&gt;  &lt;slot&gt;&lt;/slot&gt;&lt;/main&gt;              <span style="color:#7f848e">&lt;!-- 不写 name 就是默认插槽 --&gt;</span>
+&lt;footer&gt;&lt;slot name="footer"&gt;&lt;/slot&gt;&lt;/footer&gt;</pre>
+    </div>
+
+    <div class="card">
+        <h2>④ 作用域插槽：子组件把数据「递」给插槽内容</h2>
+        <div id="app4">
+            <todo-list :items="todoItems">
+                <!-- 插槽里可以使用子组件提供的 item 数据（slot props） -->
+                <template #default="{ item }">
+                    <strong :style="{ color: item.done ? '#42b983' : '#e83e8c' }">
+                        {{ item.done ? '✅' : '⬜' }} {{ item.text }}
+                    </strong>
+                    <small>（子组件把 {{ item.text }} 传给了插槽）</small>
+                </template>
+            </todo-list>
+            <p class="tip">💡 作用域插槽的套路：<br>
+            &nbsp;&nbsp;1️⃣ 子组件在 <code>&lt;slot :item="item"&gt;</code> 时把数据挂在 slot 上<br>
+            &nbsp;&nbsp;2️⃣ 使用方写 <code>#default="{ item }"</code> 解构接收<br>
+            &nbsp;&nbsp;3️⃣ 常见应用：表格列自定义、下拉选项自定义渲染</p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        // ===== ① 默认插槽组件 =====
+        const DemoCard = {
+            props: ['title'],
+            template: `
+                <div class="demo-box" style="border-style:solid;">
+                    <h3 style="margin:0 0 10px 0;color:#42b983;">🗂 {{ title }}</h3>
+                    <slot></slot>   <!-- 默认插槽 -->
+                </div>
+            `
+        };
+        createApp({
+            components: { DemoCard },
+            setup() {
+                const slotMsg = ref('（插槽内容可以正常使用父组件的数据和方法）');
+                return { slotMsg };
+            }
+        }).mount('#app');
+
+        // ===== ② 默认内容组件 =====
+        const DemoCard2 = {
+            props: ['title'],
+            template: `
+                <div class="demo-box" style="border-style:solid;">
+                    <h3 style="margin:0 0 10px 0;color:#42b983;">🗂 {{ title }}</h3>
+                    <slot>
+                        <p style="color:#6c757d;">📄 默认内容：这里啥也没填，所以显示我</p>
+                    </slot>
+                </div>
+            `
+        };
+        createApp({
+            components: { DemoCard2 }
+        }).mount('#app2');
+
+        // ===== ③ 具名插槽组件 =====
+        const LayoutBox = {
+            template: `
+                <div class="demo-box" style="border-style:solid;border-color:#2196f3;padding:0;overflow:hidden;">
+                    <div style="background:#e3f2fd;padding:12px;"><slot name="header"></slot></div>
+                    <div style="padding:12px;"><slot></slot></div>
+                    <div style="background:#e8f5e9;padding:12px;"><slot name="footer"></slot></div>
+                </div>
+            `
+        };
+        createApp({
+            components: { LayoutBox }
+        }).mount('#app3');
+
+        // ===== ④ 作用域插槽组件 =====
+        const TodoList = {
+            props: ['items'],
+            template: `
+                <div class="demo-box" style="border-style:solid;border-color:#e83e8c;">
+                    <h3 style="margin:0 0 10px 0;color:#e83e8c;">📋 TodoList（子组件渲染列表，把每一项通过插槽交给使用方自定义）</h3>
+                    <ul style="margin:0;padding-left:20px;">
+                        <li v-for="item in items" :key="item.id" style="margin:6px 0;">
+                            <slot :item="item">{{ item.text }}</slot>  <!-- 把 item 通过 slot props 传出去 -->
+                        </li>
+                    </ul>
+                </div>
+            `
+        };
+        createApp({
+            components: { TodoList },
+            setup() {
+                const todoItems = ref([
+                    { id: 1, text: '学习 Vue 3 基础', done: true },
+                    { id: 2, text: '学习组件通信', done: true },
+                    { id: 3, text: '学习插槽', done: false },
+                    { id: 4, text: '学习状态管理 Pinia', done: false }
+                ]);
+                return { todoItems };
+            }
+        }).mount('#app4');
+    </script>
+</body>
+</html>

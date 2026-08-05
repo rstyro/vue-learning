@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 3. 模板语法全解</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; margin: 4px 0; }
+        .highlight { background: #fff3cd; }
+        .red { color: #e83e8c; font-weight: bold; }
+        .list-demo li { margin: 4px 0; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <!-- ========== 插值 + 原始 HTML ========== -->
+    <div class="card">
+        <h2>1️⃣ 插值 {{ }} 与 v-html</h2>
+        <h3>① 文本插值（{{ }}）—— 输出纯文本，HTML 标签会被转义，防止 XSS 攻击</h3>
+        <p>{{ rawHtml }}</p>
+        <h3>② v-html —— 渲染真正的 HTML（⚠️ 只能用于可信内容，不要用于用户输入！）</h3>
+        <p v-html="rawHtml"></p>
+        <p class="tip">💡 对比：上面是转义后的「文本」，下面是真正渲染的「HTML」。</p>
+    </div>
+
+    <!-- ========== v-bind 绑定属性 ========== -->
+    <div class="card">
+        <h2>2️⃣ v-bind（简写 :）—— 属性绑定</h2>
+        <h3>① 绑定普通属性</h3>
+        <img :src="imgSrc" alt="动态图片" style="height:60px;border-radius:8px;">
+        <p>图片地址来自 data：<code>{{ imgSrc }}</code></p>
+
+        <h3>② 绑定 class（对象语法：有则加，无则不加）</h3>
+        <div :class="{ highlight: isActive }" style="padding:10px;border-radius:6px;">
+            isActive 为 true 时，这一行会有黄色背景（对象语法）
+        </div>
+        <button @click="isActive = !isActive">切换 isActive（现在是 {{ isActive }}）</button>
+
+        <h3>③ 绑定 style（对象语法）</h3>
+        <div :style="{ color: textColor, fontSize: fontSize + 'px' }">
+            文字颜色和大小都是动态绑定的
+        </div>
+        <button @click="textColor = textColor === 'red' ? '#42b983' : 'red'">切换颜色</button>
+
+        <h3>④ 绑定布尔属性（disabled）—— false 时会自动移除该属性</h3>
+        <button :disabled="isDisabled">我是否可点击？现在是 {{ isDisabled ? '禁用' : '可用' }}</button>
+        <button @click="isDisabled = !isDisabled">切换禁用状态</button>
+    </div>
+
+    <!-- ========== v-on 事件 ========== -->
+    <div class="card">
+        <h2>3️⃣ v-on（简写 @）—— 事件监听</h2>
+        <h3>① 基本用法 + 传参</h3>
+        <p>当前计数值：{{ count }}</p>
+        <button @click="count++">内联 +1</button>
+        <button @click="add(3)">调用方法 +3</button>
+
+        <h3>② 事件修饰符（.prevent 阻止默认行为 .stop 阻止冒泡）</h3>
+        <!-- .prevent 相当于 e.preventDefault()：阻止表单提交刷新页面 -->
+        <form @submit.prevent="handleSubmit">
+            <input v-model="formName" placeholder="输入名字后点提交">
+            <button type="submit">提交（会触发 handleSubmit，但不会刷新页面）</button>
+        </form>
+        <p>最后提交的名字：{{ submittedName }}</p>
+
+        <h3>③ 按键修饰符（@keyup.enter 回车触发）</h3>
+        <input @keyup.enter="enterMsg = '你按了回车！'" placeholder="在这里按回车试试" style="width:300px;">
+        <p>{{ enterMsg }}</p>
+    </div>
+
+    <!-- ========== v-if / v-else-if / v-else ========== -->
+    <div class="card">
+        <h2>4️⃣ v-if / v-else-if / v-else —— 条件渲染</h2>
+        <input type="number" v-model.number="score" min="0" max="100"> <span>（输入 0-100 的成绩）</span>
+        <p v-if="score >= 90" class="red">🅰 优秀！成绩 >= 90</p>
+        <p v-else-if="score >= 60">🅱 及格！成绩 60-89</p>
+        <p v-else>❌ 不及格！成绩 < 60</p>
+        <p class="tip">💡 v-if 是「真删除」：条件为 false 时元素直接从 DOM 移除。<br>
+        对比 v-show：它只是 CSS 的 display:none，元素还在 DOM 里。<br>
+        频繁切换用 v-show，几乎不变的条件用 v-if。</p>
+    </div>
+
+    <!-- ========== v-for 列表 ========== -->
+    <div class="card">
+        <h2>5️⃣ v-for —— 列表渲染</h2>
+        <h3>① 遍历数组（带索引）</h3>
+        <ul class="list-demo">
+            <li v-for="(fruit, i) in fruits" :key="fruit">
+                {{ i }} - {{ fruit }}
+            </li>
+        </ul>
+
+        <h3>② 遍历对象（值 / 键 / 索引）</h3>
+        <ul class="list-demo">
+            <li v-for="(value, key, index) in person" :key="key">
+                {{ index }}. {{ key }} = {{ value }}
+            </li>
+        </ul>
+
+        <h3>③ 遍历数字范围</h3>
+        <span v-for="n in 5" :key="n">{{ n }} </span>
+
+        <h3>④ 动态增删列表（:key 的重要性）</h3>
+        <ul class="list-demo">
+            <li v-for="(item, i) in dynamicList" :key="item.id">
+                {{ item.name }} <button @click="removeItem(i)">删除</button>
+            </li>
+        </ul>
+        <button @click="addItem">添加一个随机项</button>
+    </div>
+
+    <!-- ========== v-model 双向绑定 ========== -->
+    <div class="card">
+        <h2>6️⃣ v-model —— 双向绑定</h2>
+        <h3>① 文本输入框</h3>
+        <input v-model="text1" placeholder="输入文本"> <span>→ {{ text1 }}</span>
+
+        <h3>② 多行文本 textarea</h3>
+        <textarea v-model="text2" rows="2" cols="30" placeholder="多行文本"></textarea> <span>→ {{ text2 }}</span>
+
+        <h3>③ 复选框（单个：绑定布尔值）</h3>
+        <input type="checkbox" v-model="isChecked"> <span>是否勾选：{{ isChecked }}</span>
+
+        <h3>④ 复选框组（多个：绑定数组）</h3>
+        <input type="checkbox" value="篮球" v-model="hobbies"> 篮球
+        <input type="checkbox" value="足球" v-model="hobbies"> 足球
+        <input type="checkbox" value="游泳" v-model="hobbies"> 游泳
+        <span>→ 已选：{{ hobbies }}</span>
+
+        <h3>⑤ 单选按钮</h3>
+        <input type="radio" value="男" v-model="gender"> 男
+        <input type="radio" value="女" v-model="gender"> 女
+        <span>→ {{ gender }}</span>
+
+        <h3>⑥ 下拉选择框</h3>
+        <select v-model="city">
+            <option value="北京">北京</option>
+            <option value="上海">上海</option>
+            <option value="广州">广州</option>
+        </select>
+        <span>→ {{ city }}</span>
+
+        <h3>⑦ 修饰符：.number（转数字）和 .trim（去首尾空格）</h3>
+        <input v-model.number="age" type="number" placeholder="年龄（数字）"> <span>→ 类型是：{{ typeof age }}</span>
+        <input v-model.trim="trimText" placeholder="首尾空格会被去掉"> <span>→ [{{ trimText }}]</span>
+
+        <p class="tip">💡 v-model 的本质是「语法糖」：等价于 <code>:value="xxx"</code> + <code>@input="xxx = $event.target.value"</code>。<br>
+        在组件上使用 v-model 时等价于 <code>:modelValue</code> + <code>@update:modelValue</code>（后面组件篇会讲）。</p>
+    </div>
+
+    </div>
+<script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                // ---- 插值 ----
+                const rawHtml = ref('<strong style="color:#42b983;">我是 <code>v-html</code> 渲染的粗体 HTML</strong>');
+
+                // ---- v-bind ----
+                const imgSrc = ref('https://cn.vuejs.org/images/logo.svg');
+                const isActive = ref(false);
+                const textColor = ref('red');
+                const fontSize = ref(18);
+                const isDisabled = ref(false);
+
+                // ---- v-on ----
+                const count = ref(0);
+                const formName = ref('');
+                const submittedName = ref('（还没提交）');
+                const enterMsg = ref('');
+                function add(n) { count.value += n; }
+                function handleSubmit() {
+                    submittedName.value = formName.value || '匿名用户';
+                }
+
+                // ---- v-if ----
+                const score = ref(85);
+
+                // ---- v-for ----
+                const fruits = ref(['苹果', '香蕉', '橙子', '西瓜']);
+                const person = ref({ name: '小明', age: 18, city: '深圳' });
+                const dynamicList = ref([
+                    { id: 1, name: '第一个' },
+                    { id: 2, name: '第二个' },
+                    { id: 3, name: '第三个' }
+                ]);
+                function removeItem(i) { dynamicList.value.splice(i, 1); }
+                function addItem() {
+                    dynamicList.value.push({
+                        id: Date.now(),
+                        name: '新项' + Math.floor(Math.random() * 100)
+                    });
+                }
+
+                // ---- v-model ----
+                const text1 = ref('');
+                const text2 = ref('');
+                const isChecked = ref(false);
+                const hobbies = ref([]);
+                const gender = ref('');
+                const city = ref('北京');
+                const age = ref('');
+                const trimText = ref('');
+
+                return {
+                    rawHtml, imgSrc, isActive, textColor, fontSize, isDisabled,
+                    count, formName, submittedName, enterMsg, add, handleSubmit,
+                    score, fruits, person, dynamicList, removeItem, addItem,
+                    text1, text2, isChecked, hobbies, gender, city, age, trimText
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

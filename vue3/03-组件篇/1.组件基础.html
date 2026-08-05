@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 8. 组件基础（props 与 emit）</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .component-demo { border: 2px solid #42b983; border-radius: 10px; padding: 16px; margin: 12px 0; background: #f0faf5; }
+        .component-demo h4 { margin: 0 0 10px 0; color: #2c3e50; }
+        .flow { display: flex; gap: 12px; align-items: center; justify-content: center; margin: 16px 0; flex-wrap: wrap; }
+        .flow .arrow { font-size: 24px; color: #42b983; }
+        .flow .node { background: #e8f5e9; border: 2px solid #42b983; border-radius: 10px; padding: 12px 20px; text-align: center; }
+        .flow .node.down { background: #e3f2fd; border-color: #2196f3; color: #1565c0; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 为什么需要组件？</h2>
+        <p class="tip">💡 组件 = <strong>可复用的 UI 代码块</strong>。把页面拆成一个个小积木，每个积木负责自己的部分，拼起来就是完整页面。<br>
+        &nbsp;&nbsp;• 好处 1：复用（同一个按钮组件用 100 次，只写 1 次代码）<br>
+        &nbsp;&nbsp;• 好处 2：维护（改一个组件，所有用到它的地方都更新）<br>
+        &nbsp;&nbsp;• 好处 3：隔离（组件之间互不干扰，各管各的数据）</p>
+    </div>
+
+    <div class="card">
+        <h2>📖 组件间通信的两大核心：props（父→子）和 emit（子→父）</h2>
+        <div class="flow">
+            <div class="node">👨‍👩‍👧 父组件</div>
+            <div class="arrow">⬇ props 传数据</div>
+            <div class="node down">🧒 子组件</div>
+            <div class="arrow">⬆ emit 发事件</div>
+            <div class="node">👨‍👩‍👧 父组件</div>
+        </div>
+        <p class="tip">💡 一句话：<strong>props 是父给子的「数据通道」，emit 是子给父的「消息通道」</strong>。<br>
+        props 只能父→子单向传；子不能直接改 props，只能通过 emit 通知父组件去改（这叫「单向数据流」）。</p>
+    </div>
+
+    <div class="card">
+        <h2>① 完整示例：父组件 + 子组件（消息列表）</h2>
+        <div id="app">
+            <!-- 使用组件：像普通 HTML 标签一样
+                 传 props：:title="..." 用冒号绑定数据
+                 监听事件：@delete="..." 子组件 emit 时触发 -->
+            <message-item
+                v-for="msg in messages"
+                :key="msg.id"
+                :title="msg.title"
+                :author="msg.author"
+                :read="msg.read"
+                @delete="removeMessage(msg.id)"
+                @toggle-read="toggleRead(msg.id)"
+            />
+
+            <p class="elapsed">📊 统计：共 {{ messages.length }} 条，已读 {{ readCount }} 条</p>
+            <p class="tip">✍️ 试试：点击「标为已读」按钮，事件会从子组件发到父组件，父组件修改数据，界面自动更新！</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>② 组件定义源码详解</h2>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;overflow-x:auto;">
+<span style="color:#e06c75">// 定义子组件（在实际项目中，每个组件是一个独立的 .vue 文件）</span>
+const MessageItem = {
+    template: `
+        &lt;div :class="{ read }"&gt;
+            &lt;h4&gt;{{ title }}&lt;/h4&gt;
+            &lt;p&gt;作者：{{ author }}&lt;/p&gt;
+            &lt;button @click="$emit('toggle-read')"&gt;标为已读&lt;/button&gt;
+            &lt;button @click="$emit('delete')"&gt;删除&lt;/button&gt;
+        &lt;/div&gt;`,
+    <span style="color:#c678dd">props</span>: ['title', 'author', 'read'],  <span style="color:#7f848e">// 声明接收哪些数据（父传子）</span>
+    <span style="color:#c678dd">emits</span>: ['toggle-read', 'delete'],       <span style="color:#7f848e">// 声明向外发哪些事件（子传父）</span>
+};
+
+<span style="color:#e06c75">// 父组件中使用</span>
+createApp({
+    components: { MessageItem },           <span style="color:#7f848e">// 注册子组件</span>
+    setup() {
+        const messages = ref([...]);
+        function removeMessage(id) { ... }  <span style="color:#7f848e">// 接收子组件 emit 的事件</span>
+        return { messages, removeMessage };
+    }
+}).mount('#app');</pre>
+        <div class="warn">
+            ⚠️ <strong>props 只读原则</strong>：子组件里改 props（比如 <code>props.read = true</code>）会报警告且无效。<br>
+            ✅ 正确做法：子组件 <code>emit('toggle-read')</code>，让父组件去改数据（数据改完父组件自动把新值通过 props 传回来）。
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>③ props 进阶：类型校验与默认值</h2>
+        <p class="tip">💡 props 写成「对象」形式可以校验类型、设默认值、标必填——团队协作时非常有用，写错立刻有警告。</p>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+props: {
+    title:   { type: String,  required: true },          <span style="color:#7f848e">// 必填字符串</span>
+    author:  { type: String,  default: '匿名' },          <span style="color:#7f848e">// 可选，默认'匿名'</span>
+    read:    { type: Boolean, default: false },           <span style="color:#7f848e">// 可选，默认 false</span>
+    size:    { type: [String, Number], default: 'md' },   <span style="color:#7f848e">// 多种类型</span>
+    config:  { type: Object,  default: () =&gt; ({}) },      <span style="color:#7f848e">// 对象默认值必须用函数返回</span>
+}</pre>
+    </div>
+
+    <div class="card">
+        <h2>④ 思考题（看答案前先想想）</h2>
+        <p>1️⃣ 如果子组件需要把「自己内部的数据」传给父组件，该用什么？<br>
+        &nbsp;&nbsp;→ <code>emit('事件名', 数据)</code>，父组件用 <code>@事件名="函数(数据)"</code> 接收。</p>
+        <p>2️⃣ 如果父组件改了 props 值，子组件会自动更新吗？<br>
+        &nbsp;&nbsp;→ 会！props 是响应式的，父数据一变，子组件自动重渲染。</p>
+        <p>3️⃣ 组件上绑定的普通属性（没在 props 里声明）会怎样？<br>
+        &nbsp;&nbsp;→ 会自动成为组件的「根元素属性」（Attribute Inheritance），后面课程会提到。</p>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        // ===== 定义子组件 =====
+        const MessageItem = {
+            // 模板（实际项目在 .vue 文件的 <template> 标签里写）
+            template: `
+                <div class="component-demo">
+                    <h4>📩 {{ title }}</h4>
+                    <p style="margin:4px 0;">作者：{{ author }}</p>
+                    <p style="margin:4px 0;">
+                        <span style="color:#2c3e50;">状态：</span>
+                        <strong :style="{ color: read ? '#42b983' : '#e83e8c' }">{{ read ? '✅ 已读' : '🕐 未读' }}</strong>
+                    </p>
+                    <button @click="$emit('toggle-read')" style="font-size:13px;">标为已读</button>
+                    <button @click="$emit('delete')" style="font-size:13px;background:#e83e8c;">删除</button>
+                </div>
+            `,
+            // props 声明：父组件传进来的数据
+            props: {
+                title:  { type: String, required: true },
+                author: { type: String, default: '匿名' },
+                read:   { type: Boolean, default: false }
+            },
+            // emits 声明：子组件可以对外发出的事件
+            emits: ['toggle-read', 'delete']
+        };
+
+        // ===== 父组件 =====
+        createApp({
+            components: { MessageItem },   // 注册子组件
+            setup() {
+                const messages = ref([
+                    { id: 1, title: 'Vue 3 正式发布！', author: '尤雨溪', read: false },
+                    { id: 2, title: '组合式 API 最佳实践', author: '小明', read: true },
+                    { id: 3, title: '本周会议通知', author: '管理员', read: false }
+                ]);
+
+                // 子组件 emit 的 'delete' 事件 → 这里处理
+                function removeMessage(id) {
+                    messages.value = messages.value.filter(m => m.id !== id);
+                }
+                // 子组件 emit 的 'toggle-read' 事件 → 这里处理
+                function toggleRead(id) {
+                    const msg = messages.value.find(m => m.id === id);
+                    if (msg) msg.read = !msg.read;
+                }
+
+                const readCount = computed(() => messages.value.filter(m => m.read).length);
+
+                return { messages, removeMessage, toggleRead, readCount };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

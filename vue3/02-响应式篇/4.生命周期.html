@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 7. 生命周期</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .log-box { background: #282c34; color: #61afef; padding: 12px; border-radius: 8px; font-family: Consolas, monospace; max-height: 300px; overflow-y: auto; font-size: 13px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+        th { background: #f8f9fa; }
+        .life-demo { border: 2px dashed #42b983; border-radius: 8px; padding: 16px; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 什么是生命周期钩子？</h2>
+        <p class="tip">💡 一个组件从「创建 → 挂载到页面 → 更新 → 销毁」就像一个人的一生，<br>
+        在每个关键时刻，Vue 会调用你预先注册的<b>钩子函数</b>，让你能插入自己的逻辑（比如初始化数据、清理定时器）。</p>
+    </div>
+
+    <div class="card">
+        <h2>📋 生命周期总览（Vue 3 组合式 API 版本）</h2>
+        <table>
+            <tr><th>钩子函数</th><th>触发时机</th><th>典型用途</th></tr>
+            <tr><td><code>onBeforeMount</code></td><td>挂载 DOM 前</td><td>准备工作</td></tr>
+            <tr><td><code>onMounted</code></td><td>挂载完成后（DOM 可用）</td><td>⭐ 发请求、操作 DOM、初始化第三方库</td></tr>
+            <tr><td><code>onBeforeUpdate</code></td><td>数据变化、重新渲染前</td><td>更新前保存状态</td></tr>
+            <tr><td><code>onUpdated</code></td><td>重新渲染后</td><td>DOM 已更新</td></tr>
+            <tr><td><code>onBeforeUnmount</code></td><td>卸载前</td><td>清理准备</td></tr>
+            <tr><td><code>onUnmounted</code></td><td>卸载后</td><td>⭐ 清理定时器、解绑事件、取消请求</td></tr>
+        </table>
+        <p class="tip">💡 还有两个常用的：<code>onBeforeMount</code> 之前的 <code>onBeforeCreate / onCreated</code>（选项式 API 用，组合式里用 setup 代替），以及 <code>onActivated / onDeactivated</code>（配合 KeepAlive，进阶篇会讲）。<br>
+        <strong>setup() 本身就是「创建阶段」</strong>：ref 定义、方法定义都发生在 setup 里。</p>
+    </div>
+
+    <!-- ========== 生命周期演示 ========== -->
+    <div class="card">
+        <h2>① 实时演示：看每个钩子什么时候被触发</h2>
+        <div class="life-demo">
+            <p>子组件当前计数：<strong>{{ childCount }}</strong></p>
+            <p><button @click="childCount++">让子组件更新（触发 beforeUpdate/updated）</button></p>
+            <p><button @click="showChild = !showChild">{{ showChild ? '卸载子组件' : '重新挂载子组件' }}</button></p>
+        </div>
+        <p>钩子触发日志（按顺序看）：</p>
+        <div class="log-box">
+            <div v-for="(log, i) in logs" :key="i">{{ log }}</div>
+            <span v-if="logs.length === 0">（页面一加载，子组件的 mounted 钩子就会执行一次）</span>
+        </div>
+    </div>
+
+    <!-- ========== 代码对比 ========== -->
+    <div class="card">
+        <h2>📖 代码：子组件的生命周期（完整源码）</h2>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;overflow-x:auto;">
+<span style="color:#e06c75">// 子组件：Child</span>
+setup() {
+    const childCount = ref(0);
+
+    onBeforeMount(() =&gt; log('beforeMount：挂载前'));
+    onMounted(() =&gt; log('mounted：✅ 已挂载，DOM 可用，可以发请求了'));
+    onBeforeUpdate(() =&gt; log('beforeUpdate：数据变了，重新渲染前'));
+    onUpdated(() =&gt; log('updated：重新渲染完成'));
+    onBeforeUnmount(() =&gt; log('beforeUnmount：卸载前，清理资源'));
+    onUnmounted(() =&gt; log('unmounted：❌ 已卸载，定时器记得清掉'));
+
+    return { childCount };
+}</pre>
+    </div>
+
+    <!-- ========== 真实场景 ========== -->
+    <div class="card">
+        <h2>② 真实场景演练：定时器 + 数据加载</h2>
+        <p class="tip">💡 最常见的组合：<br>
+        &nbsp;&nbsp;• <code>onMounted</code> 里：启动定时器 / 发请求（此时页面已渲染，操作 DOM 安全）<br>
+        &nbsp;&nbsp;• <code>onUnmounted</code> 里：清理定时器（否则组件销毁后定时器还在跑 → 内存泄漏！）</p>
+        <p>当前时间（每秒跳动）：<strong style="font-size:1.4em;">{{ currentTime }}</strong></p>
+        <p class="elapsed">模拟加载的数据：<strong>{{ loadedData }}</strong>（onMounted 里「异步获取」）</p>
+        <button @click="refreshData">重新加载数据</button>
+    </div>
+
+    </div>
+<script>
+        // 引入钩子函数
+        const { createApp, ref, onMounted, onBeforeMount, onUpdated, onBeforeUpdate, onBeforeUnmount, onUnmounted } = Vue;
+
+        createApp({
+            components: {
+                // 子组件 Child
+                Child: {
+                    template: `
+                        <div style="background:#f0f7f4;padding:12px;border-radius:8px;margin:8px 0;">
+                            <p>🧒 我是子组件，计数：<strong>{{ childCount }}</strong></p>
+                            <button @click="childCount++" style="font-size:12px;">子组件内部 +1</button>
+                        </div>
+                    `,
+                    // 用 props 接收父组件传来的外部日志函数，方便子组件把日志写到父组件页面
+                    props: ['onLog'],
+                    setup(props) {
+                        const childCount = ref(0);
+                        // 统一的日志输出：调用父组件传入的 onLog
+                        const log = (msg) => props.onLog(msg);
+
+                        // 依次注册 6 个生命周期钩子
+                        onBeforeMount(() => log('⓪ beforeMount：开始挂载 DOM'));
+                        onMounted(() => log('① mounted：✅ DOM 已挂载，可以发请求/操作DOM'));
+                        onBeforeUpdate(() => log('② beforeUpdate：数据变化，准备重新渲染'));
+                        onUpdated(() => log('③ updated：重新渲染完成，DOM 已是最新'));
+                        onBeforeUnmount(() => log('④ beforeUnmount：组件准备卸载'));
+                        onUnmounted(() => log('⑤ unmounted：❌ 已卸载，清理定时器/事件'));
+
+                        return { childCount };
+                    }
+                }
+            },
+            setup() {
+                // ---- 生命周期演示日志 ----
+                const logs = ref([]);
+                const showChild = ref(true);
+                const childCount = ref(0); // 这个其实只是展示用
+
+                // ---- 真实场景：定时器 ----
+                const currentTime = ref('');
+                const loadedData = ref('（未加载）');
+                let timer = null;
+
+                onMounted(() => {
+                    logs.value.push('父组件 mounted：页面已挂载');
+                    // 启动定时器，每秒更新当前时间
+                    timer = setInterval(() => {
+                        currentTime.value = new Date().toLocaleTimeString();
+                    }, 1000);
+                    // 模拟请求数据
+                    setTimeout(() => {
+                        loadedData.value = '用户数据：张三，LV.3（模拟接口返回）';
+                        logs.value.push('父组件 mounted 里发的请求返回了');
+                    }, 800);
+                });
+
+                onUnmounted(() => {
+                    logs.value.push('父组件 unmounted：清定时器');
+                    clearInterval(timer);
+                });
+
+                function refreshData() {
+                    loadedData.value = '（加载中...）';
+                    setTimeout(() => {
+                        loadedData.value = '用户数据：张三，LV.' + Math.floor(Math.random() * 10) + '（重新加载完成）';
+                    }, 500);
+                }
+
+                return { logs, showChild, childCount, currentTime, loadedData, refreshData };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

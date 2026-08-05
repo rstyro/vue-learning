@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 3 学习导航</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; margin: 0; padding: 40px 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e9 100%); min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #2c3e50; text-align: center; }
+        h1 .vue { color: #42b983; }
+        .subtitle { text-align: center; color: #6c757d; margin-bottom: 30px; }
+        .section { background: #fff; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+        .section h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; margin-top: 0; }
+        .section .desc { color: #6c757d; font-size: 0.9em; margin-bottom: 12px; }
+        .lesson { display: block; padding: 10px 14px; margin: 6px 0; border-radius: 8px; background: #f8f9fa; color: #2c3e50; text-decoration: none; transition: all .2s; border-left: 4px solid transparent; }
+        .lesson:hover { background: #e8f5e9; border-left-color: #42b983; transform: translateX(4px); }
+        .lesson .tag { display: inline-block; background: #42b983; color: #fff; font-size: 0.75em; border-radius: 4px; padding: 1px 8px; margin-right: 8px; vertical-align: middle; }
+        .lesson .tag.pink { background: #e83e8c; }
+        .lesson .tag.blue { background: #2196f3; }
+        .lesson .tag.orange { background: #ff9800; }
+        .lesson .tag.purple { background: #9c27b0; }
+        .note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.9em; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.9em; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 <span class="vue">Vue 3</span> 学习之旅</h1>
+        <p class="subtitle">从零开始，循序渐进 —— 按编号顺序学习，每一课都是可运行的实例</p>
+
+        <div class="section">
+            <h2>📌 使用说明</h2>
+            <p>每个 HTML 文件都是一个<b>可独立运行</b>的教学实例：</p>
+            <p>
+                1️⃣ 双击 HTML 文件用浏览器打开（学习用 <code>vue.global.js</code>，无需安装任何东西）<br>
+                2️⃣ 或者启动本地服务器：<code>npx serve vue3</code> 或 <code>python -m http.server</code><br>
+                3️⃣ 每个页面都有「💡 知识点讲解 + 🖱 可操作演示 + 📖 源码注释」
+            </p>
+            <div class="note">⚠️ 建议打开浏览器控制台（F12），很多课程在控制台打印了额外的提示信息。</div>
+        </div>
+
+        <div class="section">
+            <h2>📚 第一部分：基础篇</h2>
+            <div class="desc">认识 Vue 3，学会模板语法和两种代码风格</div>
+            <a class="lesson" href="01-基础篇/1.hello-world.html"><span class="tag">第1课</span>Hello World：第一个 Vue 3 应用（插值/v-model/@click/v-if/v-for/:class）</a>
+            <a class="lesson" href="01-基础篇/2.选项式vs组合式.html"><span class="tag blue">第2课</span>选项式 API vs 组合式 API：两种风格对比</a>
+            <a class="lesson" href="01-基础篇/3.模板语法全解.html"><span class="tag">第3课</span>模板语法全解：v-bind / v-on / v-if / v-for / v-model</a>
+        </div>
+
+        <div class="section">
+            <h2>🔁 第二部分：响应式篇</h2>
+            <div class="desc">Vue 3 的核心灵魂 —— 数据驱动视图</div>
+            <a class="lesson" href="02-响应式篇/1.ref与reactive.html"><span class="tag pink">第4课</span>ref 与 reactive：响应式数据（含解构陷阱）</a>
+            <a class="lesson" href="02-响应式篇/2.computed.html"><span class="tag">第5课</span>computed 计算属性：缓存与推导（含可写 computed）</a>
+            <a class="lesson" href="02-响应式篇/3.watch.html"><span class="tag blue">第6课</span>watch 侦听器：deep / immediate / watchEffect / 停止监听</a>
+            <a class="lesson" href="02-响应式篇/4.生命周期.html"><span class="tag orange">第7课</span>生命周期钩子：onMounted / onUnmounted 实战</a>
+        </div>
+
+        <div class="section">
+            <h2>🧩 第三部分：组件篇</h2>
+            <div class="desc">把页面拆成积木 —— 组件化开发</div>
+            <a class="lesson" href="03-组件篇/1.组件基础.html"><span class="tag">第8课</span>组件基础：props（父传子）与 emit（子传父）</a>
+            <a class="lesson" href="03-组件篇/2.插槽.html"><span class="tag purple">第9课</span>插槽 slot：默认插槽 / 具名插槽 / 作用域插槽</a>
+            <a class="lesson" href="03-组件篇/3.组件通信进阶.html"><span class="tag pink">第10课</span>组件通信进阶：v-model / defineExpose / provide-inject</a>
+            <a class="lesson" href="03-组件篇/4.动态组件与KeepAlive.html"><span class="tag blue">第11课</span>动态组件 component :is 与 KeepAlive 缓存</a>
+        </div>
+
+        <div class="section">
+            <h2>🚀 第四部分：进阶篇</h2>
+            <div class="desc">写真正生产级 Vue 3 代码需要的进阶知识</div>
+            <a class="lesson" href="04-进阶篇/1.组合式函数.html"><span class="tag">第12课</span>组合式函数 Composables：useCounter / useMouse / useLocalStorage</a>
+            <a class="lesson" href="04-进阶篇/2.响应式进阶.html"><span class="tag purple">第13课</span>响应式进阶：toRefs / readonly / shallowRef / customRef</a>
+            <a class="lesson" href="04-进阶篇/3.内置组件Teleport与Transition.html"><span class="tag orange">第14课</span>内置组件：Teleport 传送 / Transition 过渡动画</a>
+            <a class="lesson" href="04-进阶篇/4.自定义指令.html"><span class="tag pink">第15课</span>自定义指令：自动聚焦 / v-color / 点击外部关闭 / 权限指令</a>
+            <a class="lesson" href="04-进阶篇/5.Vue2迁移指南.html"><span class="tag blue">第16课</span>Vue2 老司机迁移指南：差异速查 + 心法总结</a>
+        </div>
+
+        <div class="section">
+            <h2>🎯 学习建议</h2>
+            <div class="tip">
+                💡 <b>动手优先</b>：每个例子都打开源码（Ctrl+U），改一改数据，看看页面变化<br>
+                💡 <b>对比记忆</b>：第2课选项式 vs 组合式、第4课 ref vs reactive，反复对比<br>
+                💡 <b>学完记得复习</b>：第16课迁移指南是「回头检验」你掌握程度的最佳工具<br>
+                💡 <b>进阶方向</b>：学完本目录后，可以继续学习 Vue Router（路由）、Pinia（状态管理）、Vite（工程化）
+            </div>
+        </div>
+    </div>
+</body>
+</html>

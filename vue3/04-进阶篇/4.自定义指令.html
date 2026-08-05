@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 15. 自定义指令</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .auth-card { border: 2px solid #e83e8c; border-radius: 10px; padding: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 什么是自定义指令？</h2>
+        <p class="tip">💡 指令（directive）= 给元素附加行为的「v-xxx 标签」。<br>
+        &nbsp;&nbsp;• Vue 内置了 v-model、v-show、v-if 等<br>
+        &nbsp;&nbsp;• 自定义指令让你把「对 DOM 的操作」封装起来复用：<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;比如「自动聚焦」「点击外部关闭」「输入框限制数字」「水印」<br>
+        &nbsp;&nbsp;• 语法：<code>vFocus</code> 对应指令名 <code>focus</code>，使用时写作 <code>v-focus</code></p>
+    </div>
+
+    <div class="card">
+        <h2>① 最简单的自定义指令：自动聚焦</h2>
+        <div id="app">
+            <p>页面加载后，下面这个输入框会自动获得焦点（不需要点它）：</p>
+            <input v-focus placeholder="我自动聚焦了！" style="width:300px;">
+            <p class="tip">💡 核心代码：<br>
+            <code>app.directive('focus', { mounted: (el) =&gt; el.focus() })</code><br>
+            指令的钩子函数第一个参数 el 就是「绑定了指令的元素」。</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>② 带参数的指令：指令值 + 修改属性</h2>
+        <div id="app2">
+            <h3>v-color：把文字变成指定颜色</h3>
+            <p v-color="'red'">我是红色（v-color="'red'"）</p>
+            <p v-color="'blue'">我是蓝色（v-color="'blue'"）</p>
+            <p v-color="'#42b983'">我是绿色（v-color="'#42b983'"）</p>
+            <button @click="currentColor = currentColor === 'purple' ? 'orange' : 'purple'">切换下面这行的颜色（当前：{{ currentColor }}）</button>
+            <p v-color="currentColor">我是动态颜色的文字</p>
+
+            <h3>v-rainbow：动态颜色的文字（新值变化时更新）</h3>
+            <p class="tip">💡 指令的核心钩子：<br>
+            &nbsp;&nbsp;• <code>mounted(el, binding)</code>：元素挂载时执行一次<br>
+            &nbsp;&nbsp;• <code>updated(el, binding)</code>：指令的值变化时执行<br>
+            &nbsp;&nbsp;• <code>binding.value</code>：拿到 v-color="xxx" 传入的值</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+app.directive('color', {
+    mounted(el, binding) {
+        el.style.color = binding.value;   <span style="color:#7f848e">// 挂载时设置颜色</span>
+    },
+    updated(el, binding) {
+        el.style.color = binding.value;   <span style="color:#7f848e">// 值变化时更新颜色</span>
+    }
+});</pre>
+    </div>
+
+    <div class="card">
+        <h2>③ 指令修饰符 + 实战：限制输入框只能输入数字</h2>
+        <div id="app3">
+            <h3>v-number：只能输入数字</h3>
+            <input v-number placeholder="试着输入字母，会被拦截" style="width:300px;">
+            <p class="tip">💡 用到了 <code>binding.modifiers</code> 处理修饰符，比如 <code>v-number.decimal</code> 允许小数点。</p>
+
+            <h3>v-click-outside：点击外部关闭（常用！）</h3>
+            <div style="position:relative;display:inline-block;">
+                <button @click="dropdownOpen = !dropdownOpen">
+                    {{ dropdownOpen ? '点击外部关闭 ▼' : '打开下拉菜单 ▼' }}
+                </button>
+                <div v-if="dropdownOpen"
+                     v-click-outside="closeDropdown"
+                     style="position:absolute;top:40px;left:0;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:12px;min-width:180px;z-index:100;">
+                    <p>📋 菜单项 1</p>
+                    <p>📋 菜单项 2</p>
+                    <p style="color:#6c757d;font-size:0.85em;">点「外面」任意地方试试关闭我</p>
+                </div>
+            </div>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#c678dd">// v-click-outside：点击元素外部时触发</span>
+app.directive('click-outside', {
+    mounted(el, binding) {
+        el.__clickOutsideHandler__ = (e) =&gt; {
+            <span style="color:#7f848e">// 如果点击目标不在元素内部，则执行绑定的函数</span>
+            if (!(el === e.target || el.contains(e.target))) {
+                binding.value();
+            }
+        };
+        document.addEventListener('click', el.__clickOutsideHandler__);
+    },
+    unmounted(el) {
+        <span style="color:#7f848e">// 记得清理事件监听，防止内存泄漏</span>
+        document.removeEventListener('click', el.__clickOutsideHandler__);
+    }
+});</pre>
+    </div>
+
+    <div class="card">
+        <h2>④ 权限指令 v-permission：无权限的元素直接隐藏（实战！）</h2>
+        <div id="app4">
+            <h3>用户角色：{{ role }} <button @click="role = role === 'admin' ? 'user' : 'admin'">切换角色</button></h3>
+            <div class="auth-card">
+                <p v-permission="'admin'">🔒 只有 admin 才能看到这个删除按钮 <button style="background:#e83e8c;">删除</button></p>
+                <p v-permission="'admin'">🔒 只有 admin 才能看到的配置面板</p>
+                <p>✅ 所有人都能看到这行普通内容</p>
+            </div>
+            <p class="tip">💡 思路：指令里判断「当前用户角色」是否在允许列表里，<br>
+            没有权限就 <code>el.remove()</code> 把元素从 DOM 移除。<br>
+            真实项目里常结合 Pinia 里的用户信息来判断。</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+app.directive('permission', {
+    mounted(el, binding) {
+        <span style="color:#7f848e">// 模拟从 store 获取当前角色（真实项目从 Pinia 拿）</span>
+        const role = getCurrentRole();
+        const required = binding.value;   <span style="color:#7f848e">// v-permission="'admin'" 的值</span>
+        if (role !== required) {
+            el.parentNode &amp;&amp; el.parentNode.removeChild(el);
+        }
+    }
+});</pre>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        // ===== ① 自动聚焦指令 =====
+        const app1 = createApp({
+            setup() { return {}; }
+        });
+        // 注册全局指令：v-focus
+        app1.directive('focus', {
+            mounted(el) { el.focus(); }
+        });
+        app1.mount('#app');
+
+        // ===== ② v-color 指令 =====
+        const app2 = createApp({
+            setup() {
+                const currentColor = ref('purple');
+                return { currentColor };
+            }
+        });
+        app2.directive('color', {
+            mounted(el, binding) { el.style.color = binding.value; },
+            updated(el, binding) { el.style.color = binding.value; }
+        });
+        app2.mount('#app2');
+
+        // ===== ③ v-number + v-click-outside =====
+        const app3 = createApp({
+            setup() {
+                const dropdownOpen = ref(false);
+                function closeDropdown() {
+                    dropdownOpen.value = false;
+                }
+                return { dropdownOpen, closeDropdown };
+            }
+        });
+        // 数字输入限制指令
+        app3.directive('number', {
+            mounted(el) {
+                el.addEventListener('input', () => {
+                    el.value = el.value.replace(/[^0-9]/g, '');
+                });
+            }
+        });
+        // 点击外部关闭指令
+        app3.directive('click-outside', {
+            mounted(el, binding) {
+                el.__clickOutsideHandler__ = (e) => {
+                    if (!(el === e.target || el.contains(e.target))) {
+                        binding.value();
+                    }
+                };
+                document.addEventListener('click', el.__clickOutsideHandler__);
+            },
+            unmounted(el) {
+                document.removeEventListener('click', el.__clickOutsideHandler__);
+            }
+        });
+        app3.mount('#app3');
+
+        // ===== ④ v-permission 权限指令 =====
+        const app4 = createApp({
+            setup() {
+                const role = ref('admin');
+                return { role };
+            }
+        });
+        // 由于需要响应式更新，mounted 和 updated 里都判断一次
+        app4.directive('permission', {
+            mounted(el, binding) {
+                const instance = binding.instance;
+                if (instance && instance.role !== binding.value) {
+                    el.parentNode && el.parentNode.removeChild(el);
+                }
+            },
+            updated(el, binding) {
+                const instance = binding.instance;
+                if (instance && instance.role !== binding.value) {
+                    el.parentNode && el.parentNode.removeChild(el);
+                }
+            }
+        });
+        app4.mount('#app4');
+    </script>
+</body>
+</html>

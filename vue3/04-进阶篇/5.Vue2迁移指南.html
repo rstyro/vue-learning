@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 16. Vue2 老司机迁移指南</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        .danger { background: #fce4ec; border-left: 4px solid #e83e8c; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+        th { background: #f8f9fa; }
+        .v2 { background: #e3f2fd; border-radius: 4px; padding: 2px 8px; font-weight: bold; color: #1565c0; font-size: 12px; }
+        .v3 { background: #e8f5e9; border-radius: 4px; padding: 2px 8px; font-weight: bold; color: #2e7d32; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 这篇文章适合谁？</h2>
+        <p class="tip">💡 如果你已经学过 <code>01/</code> 目录里的 Vue 2 教程（选项式 API、v-if、v-for、computed、watch...），<br>
+        这篇文章帮你把 Vue 2 的知识点<b>一一映射</b>到 Vue 3 —— 大部分语法一模一样，只有几个关键差异。</p>
+    </div>
+
+    <div class="card">
+        <h2>📋 速查表：Vue 2 → Vue 3 对应关系</h2>
+        <table>
+            <tr><th>功能</th><th><span class="v2">Vue 2</span></th><th><span class="v3">Vue 3</span></th></tr>
+            <tr><td>创建应用</td><td>new Vue({ el: '#app' })</td><td>createApp({...}).mount('#app')</td></tr>
+            <tr><td>全局 API</td><td>Vue.component / Vue.directive / Vue.mixin</td><td>app.component / app.directive / app.mixin</td></tr>
+            <tr><td>数据声明</td><td>data: { ... }</td><td>data() { return {...} } 或 setup() 里 ref/reactive</td></tr>
+            <tr><td>多根元素</td><td>❌ 只能有一个根节点</td><td>✅ 模板可以有多个根节点（Fragment）</td></tr>
+            <tr><td>过滤器 filter</td><td>✅ {{ price | format }}</td><td>❌ 已移除！改用 computed 或函数</td></tr>
+            <tr><td>自定义 v-model</td><td>value + input 事件</td><td>modelValue + update:modelValue 事件</td></tr>
+            <tr><td>.sync 修饰符</td><td>✅ :prop.sync</td><td>❌ 合并进 v-model（v-model:prop 形式）</td></tr>
+            <tr><td>v-bind="对象"</td><td>只能绑定属性</td><td>✅ 可同时绑定属性和事件（@开头的事件会被解析）</td></tr>
+            <tr><td>v-for 的 key</td><td>可省略</td><td>✅ 必须写（强烈建议）</td></tr>
+            <tr><td>事件总线</td><td>$on / $off / $emit</td><td>❌ $on/$off 移除！改用 mitt 或 Pinia</td></tr>
+            <tr><td>provide/inject</td><td>非响应式</td><td>✅ 响应式</td></tr>
+            <tr><td>teleport</td><td>没有</td><td>✅ 新增内置组件</td></tr>
+            <tr><td>组合式 API</td><td>没有</td><td>✅ setup() / ref / reactive / computed / watch</td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>🔍 关键差异逐个看</h2>
+
+        <h3>① 创建应用方式不同（最直观的变化）</h3>
+        <table>
+            <tr><th>Vue 2</th><th>Vue 3</th></tr>
+            <tr>
+                <td><pre style="margin:0;">new Vue({
+    el: '#app',
+    data: { msg: 'hi' }
+})</pre></td>
+                <td><pre style="margin:0;">const app = createApp({
+    setup() {
+        const msg = ref('hi')
+        return { msg }
+    }
+})
+app.mount('#app')</pre></td>
+            </tr>
+        </table>
+        <p class="tip">💡 Vue 3 的 <code>createApp</code> 返回一个独立的 app 实例。<br>
+        好处：同一个页面可以创建多个互不干扰的应用；组件/指令注册在 app 上，不再污染全局。</p>
+
+        <h3>② data 必须写成函数</h3>
+        <p class="warn">⚠️ Vue 2 也推荐 data 写成函数，Vue 3 是<b>强制</b>：<br>
+        <code>data: { count: 0 }</code>（Vue2 允许，但会造成多个实例共享数据）<br>
+        <code>data() { return { count: 0 } }</code>（Vue3 唯一写法，每个实例独立）</p>
+
+        <h3>③ 生命周期钩子重命名</h3>
+        <table>
+            <tr><th>Vue 2</th><th>Vue 3 选项式</th><th>Vue 3 组合式</th></tr>
+            <tr><td>beforeCreate</td><td>beforeCreate</td><td>setup()</td></tr>
+            <tr><td>created</td><td>created</td><td>setup()</td></tr>
+            <tr><td>beforeMount</td><td>beforeMount</td><td>onBeforeMount</td></tr>
+            <tr><td>mounted</td><td>mounted</td><td>onMounted</td></tr>
+            <tr><td>beforeUpdate</td><td>beforeUpdate</td><td>onBeforeUpdate</td></tr>
+            <tr><td>updated</td><td>updated</td><td>onUpdated</td></tr>
+            <tr><td>beforeDestroy</td><td>beforeUnmount</td><td>onBeforeUnmount</td></tr>
+            <tr><td>destroyed</td><td>unmounted</td><td>onUnmounted</td></tr>
+        </table>
+        <p class="warn">⚠️ 两个最容易踩的坑：<code>beforeDestroy → beforeUnmount</code>、<code>destroyed → unmounted</code></p>
+
+        <h3>④ 自定义事件的变化</h3>
+        <p>Vue 2：子组件 <code>this.$emit('change', data)</code>，父组件 <code>@change</code> 监听。<br>
+        Vue 3：用法相同，但事件名<b>不再自动转成中划线</b>，建议统一用 camelCase：<br>
+        <code>this.$emit('update:modelValue', data)</code> 配 <code>@update:model-value</code>（模板里两种都能用）。</p>
+
+        <h3>⑤ v-model 在组件上的变化（重要！）</h3>
+        <p>Vue 2 组件上的 v-model 固定用 <code>value</code> 属性和 <code>input</code> 事件：<br>
+        <code>&lt;my-input v-model="x" /&gt;</code> = <code>&lt;my-input :value="x" @input="x=$event" /&gt;</code><br><br>
+        Vue 3 改成 <code>modelValue</code> 和 <code>update:modelValue</code>：<br>
+        <code>&lt;my-input v-model="x" /&gt;</code> = <code>&lt;my-input :modelValue="x" @update:modelValue="x=$event" /&gt;</code><br>
+        并且支持多个 v-model：<code>v-model:title</code>、<code>v-model:content</code> 可以同时用！</p>
+
+        <h3>⑥ 过滤器 filter 被移除</h3>
+        <p class="danger">🔥 Vue 2 的 <code>filters: { format() {...} }</code> 在 Vue 3 中<b>不再支持</b>。<br>
+        替代方案：
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;">
+<span style="color:#7f848e">// 方法一：全局函数</span>
+function formatPrice(v) { return '￥' + v.toFixed(2); }
+&lt;span&gt;{{ formatPrice(price) }}&lt;/span&gt;
+
+<span style="color:#7f848e">// 方法二：computed（推荐，自动缓存）</span>
+const formattedPrice = computed(() =&gt; '￥' + price.value.toFixed(2));</pre></p>
+
+        <h3>⑦ 模板可以多根节点了</h3>
+        <p>Vue 2：组件模板必须包一层根元素（<code>&lt;div&gt;...&lt;/div&gt;</code>）<br>
+        Vue 3：直接并列写多个根元素，自动用 Fragment 包裹，DOM 更干净：</p>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;">
+<span style="color:#7f848e">// Vue 3 合法模板：两个根节点</span>
+&lt;h1&gt;标题&lt;/h1&gt;
+&lt;p&gt;正文&lt;/p&gt;</pre>
+    </div>
+
+    <div class="card">
+        <h2>🧠 迁移心法总结</h2>
+        <p class="tip">
+        1️⃣ <strong>模板语法 90% 兼容</strong>：v-if / v-for / v-model / @click / :class 完全一样<br>
+        2️⃣ <strong>选项式 API 还能用</strong>：Vue 3 完全支持 Vue 2 的写法，只是底层换了<br>
+        3️⃣ <strong>新项目推荐直接学组合式 API</strong>：它不是必须，但它是 Vue 3 的灵魂<br>
+        4️⃣ <strong>先跑起来再优化</strong>：老项目迁移可以先只升版本，再逐步重构<br>
+        5️⃣ <strong>遇到报错先看控制台</strong>：Vue 3 的错误提示比 Vue 2 清晰很多</p>
+    </div>
+
+    <div class="card">
+        <h2>✍️ 对照练习：把 Vue 2 的示例改成 Vue 3</h2>
+        <p>回到 <code>01/1.helloWorld.html</code>，试着用 Vue 3 重写：<br>
+        &nbsp;&nbsp;① 把 <code>new Vue({ el: '#app', data: {...} })</code> 换成 <code>createApp + setup + ref</code><br>
+        &nbsp;&nbsp;② 把脚本标签换成 <code>&lt;script src="../vue3/lib/vue.global.js"&gt;&lt;/script&gt;</code><br>
+        &nbsp;&nbsp;③ 再试试 <code>01/8.computed.html</code> —— 用 <code>computed</code> 和 <code>watch</code>（注意 watch 现在是函数形式）</p>
+    </div>
+
+    <script>
+        // 本页没有动态示例，仅做知识讲解（Vue 3 也能不需要任何 JS 运行纯静态页面）
+    </script>
+</body>
+</html>

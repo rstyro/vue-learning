@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 4. ref 与 reactive（响应式核心）</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .compare { display: flex; gap: 20px; flex-wrap: wrap; }
+        .compare > div { flex: 1; min-width: 300px; }
+        .box { border: 2px dashed #42b983; border-radius: 8px; padding: 10px; margin: 8px 0; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 本课核心：响应式到底是什么？</h2>
+        <p class="tip">💡 <strong>响应式</strong> = 数据变了，用到它的地方自动更新，你不需要手动操作 DOM。<br>
+        Vue 3 提供两个创建响应式数据的核心 API：<code>ref</code>（推荐，全能）和 <code>reactive</code>（对象专用）。</p>
+    </div>
+
+    <!-- ========== ref ========== -->
+    <div class="card">
+        <h2>① ref —— 推荐首选（基本类型 + 对象都能用）</h2>
+        <div class="box">
+            <p>👤 名字：<input v-model="name" placeholder="输入名字"></p>
+            <p>🎂 年龄：{{ age }} <button @click="age++">+1</button></p>
+            <p>📦 一个 ref 包装的「对象」也可以：{{ user.name }}，{{ user.age }} 岁</p>
+        </div>
+        <p class="tip">💡 ref 使用要点：<br>
+        &nbsp;&nbsp;1️⃣ 在 JS 代码中必须用 <code>.value</code> 读写（<code>name.value = '张三'</code>）<br>
+        &nbsp;&nbsp;2️⃣ 在模板（HTML）中<b>不需要</b> .value，Vue 会自动解包<br>
+        &nbsp;&nbsp;3️⃣ 就算包装的是对象，改对象内部属性也会触发更新（内部自动用了 reactive）</p>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+const name = ref('小明');
+name.value = '小红';      <span style="color:#7f848e">// JS 里必须 .value</span>
+<span style="color:#7f848e">&lt;p&gt;{{ name }}&lt;/p&gt;   // 模板里不用 .value</span></pre>
+    </div>
+
+    <!-- ========== reactive ========== -->
+    <div class="card">
+        <h2>② reactive —— 只能包「对象」，直接访问属性</h2>
+        <div class="box">
+            <p>📚 学习进度：<strong>{{ study }}</strong></p>
+            <p>
+                已完成：{{ finishedCount }} / {{ courseCount }}
+                <button @click="study.finished++">完成一门（直接改属性）</button>
+                <button @click="study.courseCount++">加一门课</button>
+            </p>
+        </div>
+        <p class="tip">💡 reactive 使用要点：<br>
+        &nbsp;&nbsp;1️⃣ 只接受对象（数组也可以），不接受 string / number 等基本类型<br>
+        &nbsp;&nbsp;2️⃣ JS 中<b>直接访问属性</b>，不需要 .value<br>
+        &nbsp;&nbsp;3️⃣ 重新赋值整个对象会<b>丢失响应性</b>（后面「响应式进阶」篇讲解决方案 toRefs）</p>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+const study = reactive({ finished: 2, courseCount: 5 });
+study.finished++;     <span style="color:#7f848e">// 直接访问，无需 .value</span></pre>
+    </div>
+
+    <!-- ========== 对比 + 解构问题 ========== -->
+    <div class="card">
+        <h2>③ ref vs reactive：选择建议 & reactive 解构陷阱</h2>
+        <div class="compare">
+            <div>
+                <h3>✅ ref（推荐日常使用）</h3>
+                <ul>
+                    <li>基本类型、对象都能包</li>
+                    <li>从函数返回值时自动解包</li>
+                    <li>解构不丢失响应性</li>
+                    <li>团队约定：全项目统一用 ref，心智负担小</li>
+                </ul>
+            </div>
+            <div>
+                <h3>⚠️ reactive（适合嵌套深的对象）</h3>
+                <ul>
+                    <li>只能包对象/数组</li>
+                    <li>直接访问属性，无 .value</li>
+                    <li>解构会<b>丢失响应性</b>（大坑！）</li>
+                    <li>reactive 里嵌套的对象属性响应式更深</li>
+                </ul>
+            </div>
+        </div>
+        <div class="warn">
+            🔥 <strong>reactive 解构陷阱演示</strong>：下面用普通解构取出的 countA 不响应；必须用 toRefs() 包装后解构才响应。<br>
+            计数器（原始对象）：<strong>{{ state.count }}</strong>
+            <button @click="state.count++">直接改对象（有效）</button><br>
+            解构出的 countA：<strong>{{ countA }}</strong>
+            <button @click="countA++">点它（无效！因为解构丢失了响应性）</button><br>
+            用 toRefs 解构出的 countB：<strong>{{ countB }}</strong>
+            <button @click="countB++">点它（有效！toRefs 保留了连接）</button>
+        </div>
+    </div>
+
+    <!-- ========== 一个综合小练习 ========== -->
+    <div class="card">
+        <h2>④ 实战练习：购物车加减（用 ref 实现）</h2>
+        <p>🍎 苹果单价 5 元，数量 {{ quantity }}，总价：<strong>{{ quantity * 5 }} 元</strong></p>
+        <button @click="quantity++">加一个</button>
+        <button @click="quantity > 0 && quantity--">减一个</button>
+        <button @click="quantity = 0">清空</button>
+        <p class="tip">✍️ 试着把上面的实现改成 reactive 版本：<br>
+        <code>const cart = reactive({ quantity: 0 })</code> 然后 <code>cart.quantity++</code>，模板改成 <code>cart.quantity</code>。</p>
+    </div>
+
+    </div>
+<script>
+        const { createApp, ref, reactive, toRefs } = Vue;
+
+        createApp({
+            setup() {
+                // ===== ref 用法 =====
+                const name = ref('小明');
+                const age = ref(18);
+                // ref 包对象：内部自动用 reactive，改属性同样响应
+                const user = ref({ name: '小华', age: 20 });
+
+                // ===== reactive 用法 =====
+                const study = reactive({ finished: 2, courseCount: 5 });
+
+                // ===== reactive 解构陷阱演示 =====
+                const state = reactive({ count: 0 });
+                // 普通解构：countA 是一个「普通数字」，与 state.count 断开连接
+                const { count: countA } = state;
+                // toRefs 解构：countB 是一个 ref，仍然连着 state.count
+                const { count: countB } = toRefs(state);
+
+                // ===== 练习 =====
+                const quantity = ref(2);
+
+                return { name, age, user, study, state, countA, countB, quantity };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

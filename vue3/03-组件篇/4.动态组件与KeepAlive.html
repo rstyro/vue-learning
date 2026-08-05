@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 11. 动态组件与 KeepAlive</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .active-tab { background: #2196f3 !important; }
+        .tab-btn { background: #e9ecef; color: #333; }
+        .panel { border: 2px solid #42b983; border-radius: 10px; padding: 16px; min-height: 120px; }
+        .counter-demo { display: flex; gap: 20px; flex-wrap: wrap; }
+        .counter-demo > div { flex: 1; min-width: 260px; border: 1px solid #dee2e6; border-radius: 10px; padding: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 动态组件是什么？</h2>
+        <p class="tip">💡 动态组件 = 用 <code>&lt;component :is="组件名"&gt;</code> 这个内置组件，<b>根据数据动态切换渲染哪个组件</b>。<br>
+        &nbsp;&nbsp;• 典型场景：Tab 切换页、多步骤表单（步骤1/步骤2/步骤3）、弹窗内容切换<br>
+        &nbsp;&nbsp;• <code>:is</code> 可以是组件名字符串，也可以直接是组件对象</p>
+    </div>
+
+    <div class="card">
+        <h2>① 基础用法：Tab 切换（不带 KeepAlive）</h2>
+        <div id="app">
+            <!-- 动态组件：根据 currentTab 决定渲染哪个组件 -->
+            <button
+                v-for="tab in tabs"
+                :key="tab"
+                class="tab-btn"
+                :class="{ 'active-tab': currentTab === tab }"
+                @click="currentTab = tab"
+            >{{ tab }}</button>
+
+            <div class="panel" style="margin-top:12px;">
+                <component :is="currentTabComponent"></component>
+            </div>
+
+            <p class="tip">⚠️ <strong>注意：</strong>每次切换 Tab，组件都会被<b>销毁重建</b>！<br>
+            → 在下方的「输入框」里打个字，然后切走再切回来，字没了（因为组件被重新创建了）。<br>
+            → 对比右边的 ② 号 KeepAlive 版本：输入框内容会保留。</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>② KeepAlive：缓存组件实例，切换不销毁</h2>
+        <div id="app2">
+            <button
+                v-for="tab in tabs2"
+                :key="tab"
+                class="tab-btn"
+                :class="{ 'active-tab': currentTab2 === tab }"
+                @click="currentTab2 = tab"
+            >{{ tab }}</button>
+
+            <div class="panel" style="margin-top:12px;">
+                <!-- 用 <KeepAlive> 包住动态组件：切走的组件被缓存，不销毁 -->
+                <KeepAlive>
+                    <component :is="currentTabComponent2"></component>
+                </KeepAlive>
+            </div>
+
+            <p class="tip">✅ <strong>对比效果：</strong>在这里输入文字 → 切走 → 切回来，内容还在！<br>
+            💡 生命周期也会变化：被 KeepAlive 缓存的组件，切走时不触发 unmounted，而是触发 <code>onDeactivated</code>；切回来触发 <code>onActivated</code>。</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>③ 综合演示：计数器状态在 KeepAlive 下的差异</h2>
+        <div id="app3">
+            <div class="counter-demo">
+                <div>
+                    <h3>❌ 无 KeepAlive：计数器随切换丢失</h3>
+                    <p>A 组件计数：<strong>{{ noCacheA }}</strong></p>
+                    <button @click="noCacheA++">A +1</button>
+                    <button @click="noCacheB++">切到 B（此时 A 被销毁）</button>
+                    <button @click="switchNoCache('A')">切回 A</button>
+                    <p style="color:#6c757d;font-size:0.85em;">切回 A 时计数从 0 开始：因为 A 被销毁重建了</p>
+                    <p>B 组件计数：<strong>{{ noCacheB }}</strong></p>
+                    <component v-if="noCacheView === 'A'" :is="NoCacheA"></component>
+                    <component v-else :is="NoCacheB"></component>
+                </div>
+                <div>
+                    <h3>✅ 有 KeepAlive：计数器被缓存</h3>
+                    <button @click="cacheA++">A +1</button>
+                    <button @click="switchCache('B')">切到 B</button>
+                    <button @click="switchCache('A')">切回 A</button>
+                    <KeepAlive>
+                        <component :is="cacheView === 'A' ? CacheA : CacheB"></component>
+                    </KeepAlive>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        // ========== ① 无 KeepAlive ==========
+        // 定义两个简单组件
+        const TabHome = {
+            template: `
+                <div>
+                    <h3>🏠 首页组件</h3>
+                    <input placeholder="打几个字，然后切走试试" style="width:80%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                    <p style="color:#6c757d;">每次挂载都是全新实例，输入内容不会保留</p>
+                </div>
+            `
+        };
+        const TabAbout = {
+            template: `
+                <div>
+                    <h3>📄 关于组件</h3>
+                    <p>这是「关于」页面的内容。</p>
+                </div>
+            `
+        };
+
+        createApp({
+            components: { TabHome, TabAbout },
+            setup() {
+                const tabs = ref(['TabHome', 'TabAbout']);
+                const currentTab = ref('TabHome');
+                const currentTabComponent = computed(() => currentTab.value);
+                return { tabs, currentTab, currentTabComponent };
+            }
+        }).mount('#app');
+
+        // ========== ② 带 KeepAlive ==========
+        createApp({
+            components: { TabHome, TabAbout },
+            setup() {
+                const tabs2 = ref(['TabHome', 'TabAbout']);
+                const currentTab2 = ref('TabHome');
+                const currentTabComponent2 = computed(() => currentTab2.value);
+                return { tabs2, currentTab2, currentTabComponent2 };
+            }
+        }).mount('#app2');
+
+        // ========== ③ 计数器对比 ==========
+        // 两个带计数器的组件
+        const CounterA = {
+            setup() {
+                const { ref: r } = Vue;
+                const count = r(0);
+                return { count };
+            },
+            template: `<div style="margin-top:8px;background:#e8f5e9;border-radius:8px;padding:10px;">
+                🅰 组件 A：<strong>{{ count }}</strong>
+                <button @click="count++" style="font-size:12px;">内部 +1</button>
+            </div>`
+        };
+        const CounterB = {
+            setup() {
+                const { ref: r } = Vue;
+                const count = r(0);
+                return { count };
+            },
+            template: `<div style="margin-top:8px;background:#e3f2fd;border-radius:8px;padding:10px;">
+                🅱 组件 B：<strong>{{ count }}</strong>
+                <button @click="count++" style="font-size:12px;">内部 +1</button>
+            </div>`
+        };
+
+        createApp({
+            components: { NoCacheA: CounterA, NoCacheB: CounterB, CacheA: CounterA, CacheB: CounterB },
+            setup() {
+                // 无缓存版本：视图切换
+                const noCacheA = ref(0);   // 这个其实给外部演示用，真实计数在组件内部
+                const noCacheB = ref(0);
+                const noCacheView = ref('A');
+                function switchNoCache(v) { noCacheView.value = v; }
+
+                // 有缓存版本
+                const cacheA = ref(0);
+                const cacheView = ref('A');
+                function switchCache(v) { cacheView.value = v; }
+
+                return { noCacheA, noCacheB, noCacheView, switchNoCache, cacheA, cacheView, switchCache };
+            }
+        }).mount('#app3');
+    </script>
+</body>
+</html>

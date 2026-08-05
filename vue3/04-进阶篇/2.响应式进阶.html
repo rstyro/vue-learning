@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 13. 响应式进阶</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        h3 { color: #2c3e50; margin-bottom: 6px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .demo-box { flex: 1; min-width: 280px; border: 1px solid #dee2e6; border-radius: 10px; padding: 14px; }
+        .mono { font-family: Consolas, monospace; background: #f1f3f5; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 本课内容：深入理解 Vue 3 的响应式系统</h2>
+        <p class="tip">💡 除了 ref / reactive / computed / watch，Vue 3 还提供了一批「进阶响应式 API」，用于解决特定场景：<br>
+        &nbsp;&nbsp;• <code>toRefs / toRef</code>：保住 reactive 解构后的响应性<br>
+        &nbsp;&nbsp;• <code>readonly</code>：创建只读数据（防止别人改）<br>
+        &nbsp;&nbsp;• <code>shallowRef</code>：浅层响应（性能优化）<br>
+        &nbsp;&nbsp;• <code>customRef</code>：完全自定义响应式行为<br>
+        &nbsp;&nbsp;• <code>isRef / isReactive</code>：类型判断</p>
+    </div>
+
+    <div class="card">
+        <h2>① toRefs：reactive 解构不丢响应性的钥匙</h2>
+        <div id="app">
+            <div class="demo-box">
+                <h3>reactive 解构演示</h3>
+                <p>原始对象 user：<strong>{{ user.name }}</strong>（{{ user.age }} 岁）</p>
+                <p>解构出的 name：<strong>{{ name }}</strong> <button @click="name = name + '!'">改解构出的 name</button></p>
+                <p>toRefs 解构出的 age：<strong>{{ age }}</strong> <button @click="age++">改 age</button></p>
+                <p class="tip">💡 上面的 name 是普通解构（不响应），age 是 toRefs 解构（响应）。<br>
+                &nbsp;&nbsp;• 普通解构 { name } = user → name 是普通字符串，改了不更新原始对象<br>
+                &nbsp;&nbsp;• toRefs 解构 { age } = toRefs(user) → age 是 ref，改它会同步改 user.age<br>
+                &nbsp;&nbsp;📌 常见场景：reactive 的 state 传给子组件前，先用 toRefs 保住响应性</p>
+            </div>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+const user = reactive({ name: '张三', age: 18 });
+
+<span style="color:#7f848e">// ❌ 普通解构：name 变成普通字符串，和 user.name 断开连接</span>
+const { name } = user;
+name = '李四';   <span style="color:#7f848e">// user.name 不变！</span>
+
+<span style="color:#7f848e">// ✅ toRefs 解构：每个属性变成 ref，仍然连着原始对象</span>
+const { age } = toRefs(user);
+age.value = 20;  <span style="color:#7f848e">// user.age 变成 20！</span></pre>
+    </div>
+
+    <div class="card">
+        <h2>② readonly：把数据变成「只读」</h2>
+        <div id="app2">
+            <div class="demo-box">
+                <h3>readonly 演示</h3>
+                <p>原对象 user2：<strong>{{ user2.name }}</strong>（可修改）</p>
+                <p>只读副本 readonlyUser：<strong>{{ readonlyUser.name }}</strong></p>
+                <button @click="user2.name = '通过原对象改'">通过原对象改（有效）</button>
+                <button @click="tryModify">尝试修改只读副本（无效 + 控制台警告）</button>
+                <p class="warn">⚠️ 点「尝试修改」后按 F12 打开控制台，会看到 Vue 的警告：<br><code>Set operation on key "name" failed: target is readonly</code></p>
+                <p class="tip">💡 readonly 的典型用途：给子组件传「只读配置」，防止子组件误改；<br>
+                或者把响应式数据导出给外部时不想被意外修改。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>③ shallowRef：只跟踪 .value 的「浅层」响应</h2>
+        <div id="app3">
+            <div class="demo-row">
+                <div class="demo-box">
+                    <h3>❌ 普通 ref（深层响应）</h3>
+                    <p>对象：{{ deepObj }}</p>
+                    <button @click="deepObj.value.msg = '被我改了！'">改 .value.msg（会触发更新）</button>
+                    <p style="color:#6c757d;font-size:0.85em;">普通 ref 监听所有层级的属性变化</p>
+                </div>
+                <div class="demo-box">
+                    <h3>✅ shallowRef（浅层响应）</h3>
+                    <p>对象：{{ shallowObj }}</p>
+                    <button @click="shallowObj.value.msg = '被我改了！'">改 .value.msg（不会触发更新）</button>
+                    <button @click="shallowObj.value = { msg: '整体替换！' }">整体替换 .value（会触发更新）</button>
+                    <p style="color:#6c757d;font-size:0.85em;">shallowRef 只关心 .value 本身是否被替换，不追踪内部属性。<br>
+                    🚀 性能场景：存一个很大的对象（如地图实例），每次整体替换，不希望内部被深度监听</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>④ customRef：自定义响应式行为（防抖搜索实战）</h2>
+        <div id="app4">
+            <div class="demo-box">
+                <h3>customRef 防抖输入</h3>
+                <input v-model="debouncedText" placeholder="连续输入，300ms 后才更新" style="width:280px;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                <p>显示的值：<strong>{{ debouncedText }}</strong></p>
+                <p style="color:#6c757d;font-size:0.85em;">💡 原理：customRef 让你完全掌控「什么时候触发更新」。<br>
+                这里做了 300ms 防抖：停止输入 300ms 后，内容才真正更新到页面上（常用于搜索框）。</p>
+            </div>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#c678dd">// 自定义 ref：带防抖功能</span>
+function useDebouncedRef(value, delay = 300) {
+    let timeout;
+    return customRef((track, trigger) =&gt; {
+        return {
+            get() {
+                track();          <span style="color:#7f848e">// 收集依赖</span>
+                return value;
+            },
+            set(newValue) {
+                value = newValue;
+                <span style="color:#7f848e">// 防抖：每次设置都清除上一个定时器</span>
+                clearTimeout(timeout);
+                timeout = setTimeout(() =&gt; trigger(), delay);  <span style="color:#7f848e">// 延迟触发更新</span>
+            }
+        };
+    });
+}</pre>
+    </div>
+
+    <div class="card">
+        <h2>⑤ 类型判断 API 速查</h2>
+        <p class="tip">
+            <code>isRef(x)</code> —— 判断是不是 ref<br>
+            <code>isReactive(x)</code> —— 判断是不是 reactive 创建的代理对象<br>
+            <code>isReadonly(x)</code> —— 判断是不是 readonly<br>
+            <code>isProxy(x)</code> —— 判断是不是任何代理对象（reactive/readonly 都算）<br>
+            <code>shallowReactive(x)</code> —— reactive 的浅层版本<br>
+            <code>toRaw(x)</code> —— 拿到被代理包装前的「原始对象」
+        </p>
+    </div>
+
+    <script>
+        const {
+            createApp, ref, reactive, toRefs, readonly, shallowRef, customRef, isRef, isReactive, isReadonly, isProxy
+        } = Vue;
+
+        // ===== ① toRefs 演示 =====
+        createApp({
+            setup() {
+                const user = reactive({ name: '张三', age: 18 });
+                // 普通解构（不响应）
+                let { name } = user;
+                // toRefs 解构（响应）
+                const { age } = toRefs(user);
+                return { user, name, age };
+            }
+        }).mount('#app');
+
+        // ===== ② readonly 演示 =====
+        createApp({
+            setup() {
+                const user2 = reactive({ name: '张三' });
+                const readonlyUser = readonly(user2); // 只读副本
+                function tryModify() {
+                    // 会触发控制台警告，且修改失败
+                    readonlyUser.name = '被改了？';
+                }
+                return { user2, readonlyUser, tryModify };
+            }
+        }).mount('#app2');
+
+        // ===== ③ shallowRef 演示 =====
+        createApp({
+            setup() {
+                const deepObj = ref({ msg: '初始值' });
+                const shallowObj = shallowRef({ msg: '初始值' });
+                return { deepObj, shallowObj };
+            }
+        }).mount('#app3');
+
+        // ===== ④ customRef 防抖 =====
+        function useDebouncedRef(value, delay = 300) {
+            let timeout;
+            return customRef((track, trigger) => {
+                return {
+                    get() {
+                        track();
+                        return value;
+                    },
+                    set(newValue) {
+                        value = newValue;
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => trigger(), delay);
+                    }
+                };
+            });
+        }
+        createApp({
+            setup() {
+                const debouncedText = useDebouncedRef('');
+                return { debouncedText };
+            }
+        }).mount('#app4');
+    </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3 - 2. 选项式 API vs 组合式 API</title>
+    <script src="../lib/vue.global.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #35a06e; }
+        .example { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 15px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>两个应用：同样功能，两种写法</h2>
+        <p class="tip">💡 Vue 3 支持两种 API 风格，效果完全一样：<br>
+        &nbsp;&nbsp;• <strong>选项式 API（Options API）</strong>：Vue 2 老写法，靠 data / methods / computed / watch 等「选项」组织代码<br>
+        &nbsp;&nbsp;• <strong>组合式 API（Composition API）</strong>：Vue 3 新写法，靠 setup() 函数 + 逻辑复用，推荐学习</p>
+    </div>
+
+    <div class="card">
+        <h2>🅰 左侧：选项式 API（Vue 2 兼容写法）</h2>
+        <div id="app-options" class="example">
+            <p>🧮 计数器：<strong>{{ counter }}</strong></p>
+            <p>🔢 翻倍结果（computed）：<strong>{{ doubleCounter }}</strong></p>
+            <button @click="increment">+1</button>
+            <p>⏱ 日志（watch 监听 counter）：<small>{{ history }}</small></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🅱 右侧：组合式 API（Vue 3 推荐写法）</h2>
+        <div id="app-composition" class="example">
+            <p>🧮 计数器：<strong>{{ counter }}</strong></p>
+            <p>🔢 翻倍结果（computed）：<strong>{{ doubleCounter }}</strong></p>
+            <button @click="increment">+1</button>
+            <p>⏱ 日志（watch 监听 counter）：<small>{{ history }}</small></p>
+        </div>
+        <p class="tip">💡 两个应用长一模一样，但代码组织方式完全不同，看下面的源码对比！</p>
+    </div>
+
+    <div class="card">
+        <h2>📖 源码对比：同一逻辑的两种组织方式</h2>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;overflow-x:auto;line-height:1.6;">
+<span style="color:#e06c75">// 写法一：选项式（Vue 2 风格）</span>
+const { createApp } = Vue;
+createApp({
+    data() {
+        return { counter: 0, history: '' };
+    },
+    <span style="color:#c678dd">computed</span>: {
+        doubleCounter() { return this.counter * 2; }
+    },
+    <span style="color:#c678dd">watch</span>: {
+        counter(newVal) { this.history = '值变为 ' + newVal + ' | ' + this.history; }
+    },
+    <span style="color:#c678dd">methods</span>: {
+        increment() { this.counter++; }
+    }
+}).mount('#app-options');
+
+<span style="color:#e06c75">// 写法二：组合式（Vue 3 推荐）——所有逻辑写在一个 setup() 里</span>
+const { createApp, ref, computed, watch } = Vue;
+createApp({
+    setup() {
+        const counter = ref(0);
+        const history = ref('');
+
+        const doubleCounter = computed(() => counter.value * 2);
+
+        watch(counter, (newVal) => {
+            history.value = '值变为 ' + newVal + ' | ' + history.value;
+        });
+
+        function increment() { counter.value++; }
+
+        return { counter, history, doubleCounter, increment };
+    }
+}).mount('#app-composition');
+        </pre>
+        <p class="tip">🎯 组合式 API 的核心价值：<strong>按「逻辑功能」组织代码，而不是按「选项类型」组织</strong>。<br>
+        当组件变复杂时（比如同时有搜索、筛选、分页、排序），选项式会把这些逻辑拆散在 data/methods/watch 各处；
+        组合式可以把每个功能的所有代码放在一起，甚至抽成可复用的函数（后面「组合式函数」章节会讲）。</p>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+
+        // ===== 写法一：选项式 API =====
+        createApp({
+            data() {
+                return { counter: 0, history: '' };
+            },
+            computed: {
+                doubleCounter() { return this.counter * 2; }
+            },
+            watch: {
+                // 监听 counter，值变化时执行
+                counter(newVal) {
+                    this.history = '值变为 ' + newVal + ' | ' + this.history;
+                }
+            },
+            methods: {
+                increment() { this.counter++; }
+            }
+        }).mount('#app-options');
+
+        // ===== 写法二：组合式 API（本项目的重点） =====
+        createApp({
+            setup() {
+                // ref 创建响应式数据
+                const counter = ref(0);
+                const history = ref('');
+
+                // computed 计算属性：依赖 counter，自动缓存
+                const doubleCounter = computed(() => counter.value * 2);
+
+                // watch 侦听器：监听 counter 变化
+                watch(counter, (newVal) => {
+                    history.value = '值变为 ' + newVal + ' | ' + history.value;
+                });
+
+                // 方法
+                function increment() { counter.value++; }
+
+                // 全部暴露给模板
+                return { counter, history, doubleCounter, increment };
+            }
+        }).mount('#app-composition');
+    </script>
+</body>
+</html>
