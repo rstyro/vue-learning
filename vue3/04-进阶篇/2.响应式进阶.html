@@ -80,16 +80,22 @@ age.value = 20;  <span style="color:#7f848e">// user.age 变成 20！</span></pr
                 <div class="demo-box">
                     <h3>❌ 普通 ref（深层响应）</h3>
                     <p>对象：{{ deepObj }}</p>
-                    <button @click="deepObj.value.msg = '被我改了！'">改 .value.msg（会触发更新）</button>
+                    <!-- ⚠️ 模板中 ref 自动解包：deepObj 就是 deepObj.value，所以直接写 .msg -->
+                    <button @click="deepObj.msg = '被我改了！'">改 .msg（会触发更新）</button>
                     <p style="color:#6c757d;font-size:0.85em;">普通 ref 监听所有层级的属性变化</p>
                 </div>
                 <div class="demo-box">
                     <h3>✅ shallowRef（浅层响应）</h3>
                     <p>对象：{{ shallowObj }}</p>
-                    <button @click="shallowObj.value.msg = '被我改了！'">改 .value.msg（不会触发更新）</button>
-                    <button @click="shallowObj.value = { msg: '整体替换！' }">整体替换 .value（会触发更新）</button>
+                    <!-- 修改内部属性：不会触发更新（shallowRef 不追踪内部） -->
+                    <button @click="shallowObj.msg = '被我改了！'">改 .msg（不会触发更新）</button>
+                    <!-- 整体替换 .value：会触发更新（用方法，因为模板里无法给 ref 的 .value 赋值） -->
+                    <button @click="replaceShallow">整体替换 .value（会触发更新）</button>
                     <p style="color:#6c757d;font-size:0.85em;">shallowRef 只关心 .value 本身是否被替换，不追踪内部属性。<br>
                     🚀 性能场景：存一个很大的对象（如地图实例），每次整体替换，不希望内部被深度监听</p>
+                    <p class="tip">⚠️ 注意：在模板中 ref 会被自动解包——写 <code>shallowObj</code> 就是 <code>shallowObj.value</code>，<br>
+                    所以模板里 <b>不要</b> 写 <code>shallowObj.value.xxx</code>（会变成 undefined.xxx 报错）。<br>
+                    而「整体替换」需要给 .value 赋值，模板做不到，所以要放在方法里做。</p>
                 </div>
             </div>
         </div>
@@ -174,7 +180,13 @@ function useDebouncedRef(value, delay = 300) {
             setup() {
                 const deepObj = ref({ msg: '初始值' });
                 const shallowObj = shallowRef({ msg: '初始值' });
-                return { deepObj, shallowObj };
+
+                // 整体替换 .value：必须在 JS 里做（模板中 ref 已解包，无法给 .value 赋值）
+                function replaceShallow() {
+                    shallowObj.value = { msg: '整体替换！' };  // 替换 .value 本身 → 触发更新
+                }
+
+                return { deepObj, shallowObj, replaceShallow };
             }
         }).mount('#app3');
 

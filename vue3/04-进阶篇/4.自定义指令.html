@@ -91,13 +91,17 @@ app.directive('color', {
 <span style="color:#c678dd">// v-click-outside：点击元素外部时触发</span>
 app.directive('click-outside', {
     mounted(el, binding) {
-        el.__clickOutsideHandler__ = (e) =&gt; {
-            <span style="color:#7f848e">// 如果点击目标不在元素内部，则执行绑定的函数</span>
-            if (!(el === e.target || el.contains(e.target))) {
-                binding.value();
-            }
-        };
-        document.addEventListener('click', el.__clickOutsideHandler__);
+        <span style="color:#7f848e">// ⚠️ 延迟注册：立即注册会让"打开下拉的那次点击"冒泡时误触发关闭</span>
+        setTimeout(() =&gt; {
+            if (!el.isConnected) return;   <span style="color:#7f848e">// 下拉已卸载则跳过</span>
+            el.__clickOutsideHandler__ = (e) =&gt; {
+                <span style="color:#7f848e">// 如果点击目标不在元素内部，则执行绑定的函数</span>
+                if (!(el === e.target || el.contains(e.target))) {
+                    binding.value();
+                }
+            };
+            document.addEventListener('click', el.__clickOutsideHandler__);
+        }, 0);
     },
     unmounted(el) {
         <span style="color:#7f848e">// 记得清理事件监听，防止内存泄漏</span>
@@ -179,12 +183,20 @@ app.directive('permission', {
         // 点击外部关闭指令
         app3.directive('click-outside', {
             mounted(el, binding) {
-                el.__clickOutsideHandler__ = (e) => {
-                    if (!(el === e.target || el.contains(e.target))) {
-                        binding.value();
-                    }
-                };
-                document.addEventListener('click', el.__clickOutsideHandler__);
+                // ⚠️ 关键：必须延迟注册 document 监听器！
+                //   如果立即注册，用户点击按钮打开下拉的【这一次点击】还在冒泡，
+                //   冒泡到 document 时会触发本指令 → 下拉刚打开就被关闭 → 按钮"点了没反应"
+                //   setTimeout 0：等当前事件循环完全结束（这次点击的冒泡走完）再注册监听
+                setTimeout(() => {
+                    // 防御：若下拉在 setTimeout 执行前已被卸载（el 已脱离文档），就不再注册
+                    if (!el.isConnected) return;
+                    el.__clickOutsideHandler__ = (e) => {
+                        if (!(el === e.target || el.contains(e.target))) {
+                            binding.value();
+                        }
+                    };
+                    document.addEventListener('click', el.__clickOutsideHandler__);
+                }, 0);
             },
             unmounted(el) {
                 document.removeEventListener('click', el.__clickOutsideHandler__);

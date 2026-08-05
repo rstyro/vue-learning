@@ -63,10 +63,12 @@
             >{{ tab }}</button>
 
             <div class="panel" style="margin-top:12px;">
-                <!-- 用 <KeepAlive> 包住动态组件：切走的组件被缓存，不销毁 -->
-                <KeepAlive>
+                <!-- ⚠️ 注意：这是「DOM 模板」（HTML 里直接写模板），标签名会被浏览器小写化，
+                     所以必须写 kebab-case 的 <keep-alive>！
+                     写 <KeepAlive> 会被浏览器转成 <keepalive>，Vue 无法识别 → KeepAlive 失效 -->
+                <keep-alive>
                     <component :is="currentTabComponent2"></component>
-                </KeepAlive>
+                </keep-alive>
             </div>
 
             <p class="tip">✅ <strong>对比效果：</strong>在这里输入文字 → 切走 → 切回来，内容还在！<br>
@@ -80,23 +82,20 @@
             <div class="counter-demo">
                 <div>
                     <h3>❌ 无 KeepAlive：计数器随切换丢失</h3>
-                    <p>A 组件计数：<strong>{{ noCacheA }}</strong></p>
-                    <button @click="noCacheA++">A +1</button>
-                    <button @click="noCacheB++">切到 B（此时 A 被销毁）</button>
-                    <button @click="switchNoCache('A')">切回 A</button>
-                    <p style="color:#6c757d;font-size:0.85em;">切回 A 时计数从 0 开始：因为 A 被销毁重建了</p>
-                    <p>B 组件计数：<strong>{{ noCacheB }}</strong></p>
-                    <component v-if="noCacheView === 'A'" :is="NoCacheA"></component>
-                    <component v-else :is="NoCacheB"></component>
+                    <button @click="switchNoCache('A')">显示 A</button>
+                    <button @click="switchNoCache('B')">显示 B</button>
+                    <p style="color:#6c757d;font-size:0.85em;">先点 A 内部的「+1」加几次，再切到 B，再切回 A → 计数从 0 开始（组件被销毁重建）</p>
+                    <!-- 无 KeepAlive：切换即销毁 -->
+                    <component :is="noCacheView === 'A' ? NoCacheA : NoCacheB"></component>
                 </div>
                 <div>
                     <h3>✅ 有 KeepAlive：计数器被缓存</h3>
-                    <button @click="cacheA++">A +1</button>
-                    <button @click="switchCache('B')">切到 B</button>
-                    <button @click="switchCache('A')">切回 A</button>
-                    <KeepAlive>
+                    <button @click="switchCache('A')">显示 A</button>
+                    <button @click="switchCache('B')">显示 B</button>
+                    <p style="color:#6c757d;font-size:0.85em;">同样给 A 加几次，切走再切回 → 计数保留（实例被缓存）</p>
+                    <keep-alive>
                         <component :is="cacheView === 'A' ? CacheA : CacheB"></component>
-                    </KeepAlive>
+                    </keep-alive>
                 </div>
             </div>
         </div>
@@ -147,45 +146,45 @@
         }).mount('#app2');
 
         // ========== ③ 计数器对比 ==========
-        // 两个带计数器的组件
+        // 两个带计数器的组件（计数状态在组件【内部】）
         const CounterA = {
             setup() {
-                const { ref: r } = Vue;
-                const count = r(0);
-                return { count };
+                const count = Vue.ref(0);
+                function add() { count.value++; }
+                return { count, add };
             },
             template: `<div style="margin-top:8px;background:#e8f5e9;border-radius:8px;padding:10px;">
                 🅰 组件 A：<strong>{{ count }}</strong>
-                <button @click="count++" style="font-size:12px;">内部 +1</button>
+                <button @click="add" style="font-size:12px;">内部 +1</button>
             </div>`
         };
         const CounterB = {
             setup() {
-                const { ref: r } = Vue;
-                const count = r(0);
-                return { count };
+                const count = Vue.ref(0);
+                function add() { count.value++; }
+                return { count, add };
             },
             template: `<div style="margin-top:8px;background:#e3f2fd;border-radius:8px;padding:10px;">
                 🅱 组件 B：<strong>{{ count }}</strong>
-                <button @click="count++" style="font-size:12px;">内部 +1</button>
+                <button @click="add" style="font-size:12px;">内部 +1</button>
             </div>`
         };
 
         createApp({
             components: { NoCacheA: CounterA, NoCacheB: CounterB, CacheA: CounterA, CacheB: CounterB },
             setup() {
-                // 无缓存版本：视图切换
-                const noCacheA = ref(0);   // 这个其实给外部演示用，真实计数在组件内部
-                const noCacheB = ref(0);
-                const noCacheView = ref('A');
+                const noCacheView = Vue.ref('A');
+                const cacheView = Vue.ref('A');
                 function switchNoCache(v) { noCacheView.value = v; }
-
-                // 有缓存版本
-                const cacheA = ref(0);
-                const cacheView = ref('A');
                 function switchCache(v) { cacheView.value = v; }
 
-                return { noCacheA, noCacheB, noCacheView, switchNoCache, cacheA, cacheView, switchCache };
+                return {
+                    // ⚠️ 关键：必须把组件【对象】return 出来，模板里的 :is 才能拿到！
+                    //   只写在 components 选项里是不够的——那只能用于 <no-cache-a> 标签形式
+                    NoCacheA: CounterA, NoCacheB: CounterB,
+                    CacheA: CounterA, CacheB: CounterB,
+                    noCacheView, cacheView, switchNoCache, switchCache
+                };
             }
         }).mount('#app3');
     </script>
