@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 7. 组件化（component）</title>
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-box { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; }
+        ol { padding-left: 20px; }
+        .fruit-item { margin: 8px 0; padding: 10px 14px; background: #f0faf5; border-radius: 8px; cursor: pointer; list-style: none; transition: all .2s; }
+        .fruit-item:hover { background: #d4edda; transform: translateX(4px); }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 什么是组件？</h2>
+        <p class="tip">💡 组件 = <strong>可复用的代码块</strong>。把页面拆成一个个小积木，每个积木负责自己的部分。<br>
+        &nbsp;&nbsp;• <code>Vue.component('组件名', { 配置 })</code> 定义全局组件<br>
+        &nbsp;&nbsp;• 组件就像自定义 HTML 标签：<code>&lt;fruit-item&gt;&lt;/fruit-item&gt;</code><br>
+        &nbsp;&nbsp;• 父组件通过 <code>props</code> 给子组件传数据（父→子，单向）<br>
+        &nbsp;&nbsp;• 子组件通过 <code>emit</code> / <code>@事件</code> 通知父组件（子→父）</p>
+    </div>
+
+    <!-- =============== 知识点 1：全局组件 + props =============== -->
+    <div class="card">
+        <h2>① 全局组件 + props 传数据</h2>
+        <div class="demo-box">
+            <p>水果列表（点击每一项会弹出它的中文名）：</p>
+            <ol>
+                <!-- v-bind:item="fruit"：把当前 fruit 对象通过 props 传给子组件 -->
+                <fruit-item v-for="fruit in fruits" v-bind:item="fruit"></fruit-item>
+            </ol>
+        </div>
+        <p class="count">💡 列表末尾的「西红柿」是创建 Vue 实例后动态 push 进去的——列表会自动更新。</p>
+    </div>
+
+    <!-- =============== 知识点 2：组件复用 =============== -->
+    <div class="card">
+        <h2>② 组件复用：一个组件，多处使用</h2>
+        <div class="demo-box">
+            <p>同一个组件在不同地方用（每个实例独立）：</p>
+            <button-counter></button-counter>
+            <button-counter></button-counter>
+            <button-counter></button-counter>
+        </div>
+        <p class="tip">💡 三个按钮互不影响 —— 每个组件实例都有自己独立的 data。<br>
+        <strong>⚠️ 注意：</strong>组件里 data 必须写成<b>函数</b>（返回对象），不能写对象！<br>
+        否则所有实例会共享同一份数据（这是 Vue 2 的重要规范）。</p>
+    </div>
+
+    <!-- =============== 知识点 3：props 校验 =============== -->
+    <div class="card">
+        <h2>③ props 进阶：写成对象可以校验类型、设默认值</h2>
+        <div class="demo-box">
+            <user-badge name="张三" :level="5"></user-badge>
+            <user-badge name="李四"></user-badge>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+Vue.component('user-badge', {
+    props: {
+        name:  { type: String, required: true },   <span style="color:#7f848e">// 必填字符串</span>
+        level: { type: Number, default: 1 }         <span style="color:#7f848e">// 可选，默认 1</span>
+    },
+    template: '&lt;span&gt;👤 {{ name }}（Lv.{{ level }}）&lt;/span&gt;'
+});</pre>
+    </div>
+
+    <!-- =============== 知识点 4：子组件给父组件传值 =============== -->
+    <div class="card">
+        <h2>④ 子组件给父组件传值（$emit）</h2>
+        <div class="demo-box">
+            <p>父组件收到的消息：<strong>{{ childMsg }}</strong></p>
+            <child-sender @send="childMsg = $event"></child-sender>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#7f848e">// 子组件：点击按钮时 $emit('send', '数据') 向外发事件和值</span>
+Vue.component('child-sender', {
+    template: '&lt;button @click="$emit(\'send\', \'来自子组件的数据!\')"&gt;点我发送&lt;/button&gt;'
+});
+
+<span style="color:#7f848e">// 父组件：@send="childMsg = $event" 接收（$event 就是子组件传来的值）</span>
+&lt;child-sender @send="childMsg = $event"&gt;&lt;/child-sender&gt;</pre>
+        <div class="warn">⚠️ 核心原则：<strong>单向数据流</strong> —— 子组件不能直接改 props，只能通过 $emit 通知父组件改。</div>
+    </div>
+
+    </div>
+<script>
+        // ===== ① 全局组件：水果项 =====
+        Vue.component("fruit-item", {
+            props: ["item"],            // 声明接收父组件传来的数据
+            template: "<li class='fruit-item' @click='alertName(item.cn_name)'>" +
+                      "{{ item.cn_name }}（{{ item.en_name }}）</li>",
+            methods: {
+                alertName: function (name) {
+                    alert(name);        // 演示用 alert，实际项目一般是打开弹窗/跳转
+                }
+            }
+        });
+
+        // ===== ② 组件复用：计数器 =====
+        Vue.component("button-counter", {
+            // ⚠️ 组件内 data 必须是函数！每次创建实例都会调用它返回一份独立的数据
+            data: function () {
+                return { count: 0 };
+            },
+            template: "<button @click='count++'>你点了我 {{ count }} 次</button>"
+        });
+
+        // ===== ③ props 校验 =====
+        Vue.component("user-badge", {
+            props: {
+                name:  { type: String, required: true },
+                level: { type: Number, default: 1 }
+            },
+            template: "<span style='background:#e3f2fd;padding:4px 12px;border-radius:16px;margin:4px;'>👤 {{ name }}（Lv.{{ level }}）</span>"
+        });
+
+        // ===== ④ 子传父 =====
+        Vue.component("child-sender", {
+            template: "<button @click=\"$emit('send', '来自子组件的数据!')\">点我发送给父组件</button>"
+        });
+
+        // ===== 根实例 =====
+        var app = new Vue({
+            el: "#app",
+            data: {
+                childMsg: "（还没收到消息）",
+                fruits: [
+                    { cn_name: "苹果", en_name: "apple" },
+                    { cn_name: "梨", en_name: "pear" },
+                    { cn_name: "杏", en_name: "apricot" },
+                    { cn_name: "桃", en_name: "peach" },
+                    { cn_name: "葡萄", en_name: "grape" }
+                ]
+            }
+        });
+
+        // 创建实例后动态添加数据（列表自动更新）
+        app.fruits.push({ cn_name: "西红柿", en_name: "Tomato" });
+    </script>
+</body>
+</html>

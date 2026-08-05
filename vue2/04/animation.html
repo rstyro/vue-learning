@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>点赞动画</title>
-    <script src="../dist/vue.min.js"></script>
-    <link href="../style/animate.min.css" rel="stylesheet">
+    <script src="../lib/vue.min.js"></script>
+    <link href="../../style/animate.min.css" rel="stylesheet">
     <style>
         #app{
             width: 500px;
@@ -116,7 +116,7 @@
                 <div class="icon-background">
                     <div class="icon-location" >
 						<img v-if="active" class="icon animated" src="../images/heart-active.png" @click="toggle" :class="AnimateClass"></img>
-						<img v-else class="icon animated" src="../images/heart.png" @click="toggle" :class="AnimateClass"></img>						
+						<img v-else class="icon animated" src="../images/heart.png" @click="toggle" :class="AnimateClass"></img>
                     </div>
                     <div class="icon-decoration" :class="{ 'icon-decoration-active':active}"></div>
                 </div>

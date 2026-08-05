@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 8. 计算属性与侦听器</title>
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .demo-box { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+        th { background: #f8f9fa; }
+        .value { color: #e83e8c; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 computed 与 watch 的区别</h2>
+        <p class="tip">💡 一句话：<strong>computed 算东西（派生数据），watch 做事情（监听变化执行操作）</strong>。<br>
+        &nbsp;&nbsp;• <code>computed</code>：根据已有数据「推导」出新数据，自动缓存，依赖不变就不重算<br>
+        &nbsp;&nbsp;• <code>watch</code>：监听某个数据，变化时执行一段逻辑（副作用）<br>
+        &nbsp;&nbsp;• 能只用 computed 解决的，优先用 computed；需要做「事情」才用 watch</p>
+    </div>
+
+    <!-- =============== 知识点 1：computed =============== -->
+    <div class="card">
+        <h2>① computed 计算属性：全名自动拼接</h2>
+        <div class="demo-box">
+            <p>姓：<input v-model="firstName" placeholder="姓"></p>
+            <p>名：<input v-model="lastName" placeholder="名"></p>
+            <p>直接拼接：{{ firstName }} {{ lastName }}</p>
+            <p>computed 全名：<span class="value">{{ fullName }}</span></p>
+            <p class="count">📌 模板里直接拼和 computed 效果一样，但逻辑复杂时（如拼接+截断+格式化）computed 更清晰、可复用、有缓存。</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#c678dd">computed</span>: {
+    fullName: function () {
+        <span style="color:#7f848e">// 依赖 firstName 和 lastName，任一变化自动重新计算</span>
+        return this.firstName + ' ' + this.lastName;
+    }
+}</pre>
+    </div>
+
+    <!-- =============== 知识点 2：computed 购物车 =============== -->
+    <div class="card">
+        <h2>② computed 实战：购物车总价（依赖多个数据）</h2>
+        <div class="demo-box">
+            <table>
+                <tr>
+                    <th>商品</th><th>单价</th><th>数量</th><th>小计</th>
+                </tr>
+                <tr v-for="item in cart" :key="item.id">
+                    <td>{{ item.name }}</td>
+                    <td>￥{{ item.price }}</td>
+                    <td>
+                        <button @click="item.quantity > 0 && item.quantity--">-</button>
+                        {{ item.quantity }}
+                        <button @click="item.quantity++">+</button>
+                    </td>
+                    <td>￥{{ item.price * item.quantity }}</td>
+                </tr>
+            </table>
+            <p>商品总数：<strong>{{ totalCount }}</strong> 件</p>
+            <p>合计金额：<span class="value" style="font-size:1.3em;">￥{{ totalPrice }}</span></p>
+        </div>
+        <p class="tip">💡 totalCount 和 totalPrice 都是 computed：购物车数据一变，它们自动更新。<br>
+        这比在模板里写一大串 reduce 表达式优雅得多，而且带缓存。</p>
+    </div>
+
+    <!-- =============== 知识点 3：watch =============== -->
+    <div class="card">
+        <h2>③ watch 侦听器：统计修改次数</h2>
+        <div class="demo-box">
+            <p>姓：<input v-model="firstName2" placeholder="姓"></p>
+            <p>名：<input v-model="lastName2" placeholder="名"></p>
+            <p>全名：<span class="value">{{ fullName2 }}</span></p>
+            <p>修改全名的次数：<strong>{{ count }}</strong> 次</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#c678dd">watch</span>: {
+    fullName2: function (newVal, oldVal) {
+        <span style="color:#7f848e">// 只要全名变化就执行（newVal 新值 / oldVal 旧值）</span>
+        this.count++;
+    }
+}</pre>
+        <p class="tip">💡 和 computed 的区别：computed 是「派生数据给模板用」，watch 是「数据变了我要去做点事」（比如发请求、存草稿、写日志）。</p>
+    </div>
+
+    <!-- =============== 知识点 4：watch 深度监听 =============== -->
+    <div class="card">
+        <h2>④ watch 深度监听对象（deep）</h2>
+        <div class="demo-box">
+            <p>配置：<input v-model="config.theme" placeholder="主题"> <input v-model="config.size" type="number" placeholder="字号"></p>
+            <p>配置变化日志：</p>
+            <ul>
+                <li v-for="(log, i) in configLogs" :key="i">{{ log }}</li>
+            </ul>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#7f848e">// 监听对象内部属性变化，必须加 deep: true（否则只监听引用替换）</span>
+watch: {
+    config: {
+        handler: function (val) { this.configLogs.unshift('配置变了: ' + val.theme); },
+        deep: true
+    }
+}</pre>
+    </div>
+
+    </div>
+<script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                // ① computed 演示
+                firstName: "张",
+                lastName: "三",
+                // ② 购物车
+                cart: [
+                    { id: 1, name: '苹果', price: 5, quantity: 3 },
+                    { id: 2, name: '香蕉', price: 3, quantity: 5 },
+                    { id: 3, name: '西瓜', price: 20, quantity: 1 }
+                ],
+                // ③ watch 演示
+                firstName2: "李",
+                lastName2: "四",
+                count: 0,
+                // ④ deep watch
+                config: { theme: 'light', size: 14 },
+                configLogs: []
+            },
+            computed: {
+                fullName: function () {
+                    return this.firstName + ' ' + this.lastName;
+                },
+                // ② 购物车总价（依赖 cart 里的每个 item）
+                totalCount: function () {
+                    var sum = 0;
+                    for (var i = 0; i < this.cart.length; i++) {
+                        sum += this.cart[i].quantity;
+                    }
+                    return sum;
+                },
+                totalPrice: function () {
+                    var sum = 0;
+                    for (var i = 0; i < this.cart.length; i++) {
+                        sum += this.cart[i].price * this.cart[i].quantity;
+                    }
+                    return sum;
+                },
+                fullName2: function () {
+                    return this.firstName2 + ' ' + this.lastName2;
+                }
+            },
+            watch: {
+                fullName2: function (newVal, oldVal) {
+                    this.count++;
+                },
+                config: {
+                    handler: function (val) {
+                        this.configLogs.unshift('配置变了 → 主题: ' + val.theme + ', 字号: ' + val.size);
+                        if (this.configLogs.length > 6) this.configLogs.pop();
+                    },
+                    deep: true   // 关键：深度监听
+                }
+            }
+        });
+    </script>
+</body>
+</html>

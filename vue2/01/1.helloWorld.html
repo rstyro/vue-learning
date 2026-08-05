@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 1. Hello World（第一个应用）</title>
+    <!-- Vue 2 完整版（学习用，含模板编译器） -->
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #35a06e; }
+        input { padding: 8px; width: 300px; border: 1px solid #ddd; border-radius: 6px; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <!-- =============== 知识点 1：最基础的渲染 =============== -->
+    <div class="card">
+        <h2>① {{ }} 插值语法</h2>
+        <p class="tip">💡 Vue 的核心思想：声明式渲染。你只关心「数据是什么样」，Vue 帮你更新「页面是什么样」。</p>
+        <p>问候语：{{ message }}</p>
+        <p>反转后的问候语：{{ message.split('').reverse().join('') }}（插值里可以写简单的 JS 表达式）</p>
+    </div>
+
+    <!-- =============== 知识点 2：插值 vs v-text vs v-html =============== -->
+    <div class="card">
+        <h2>② 三种输出方式：{{ }} 插值 / v-text / v-html</h2>
+        <p class="tip">💡 区别：<br>
+        &nbsp;&nbsp;• <code>{{ }}</code>：输出纯文本，HTML 标签会被转义（安全，推荐）<br>
+        &nbsp;&nbsp;• <code>v-text</code>：与插值等价，但不会闪烁<br>
+        &nbsp;&nbsp;• <code>v-html</code>：渲染真正的 HTML（⚠️ 只能用于可信内容，防止 XSS 攻击）</p>
+        <p>插值 {{ }}：{{ htmlMessage }}</p>
+        <p v-text="htmlMessage">这段文字会被 v-text 覆盖</p>
+        <p v-html="htmlMessage">这段文字会被 v-html 覆盖</p>
+    </div>
+
+    <!-- =============== 知识点 3：双向绑定 =============== -->
+    <div class="card">
+        <h2>③ v-model 双向绑定</h2>
+        <p class="tip">💡 <code>v-model</code> 让「页面输入」和「数据」保持同步：改了输入框，message 也跟着变！</p>
+        <input v-model="message" placeholder="输入点什么...">
+        <p>你输入的内容实时显示在这里：<strong>{{ message }}</strong></p>
+    </div>
+
+    <!-- =============== 知识点 4：事件处理 =============== -->
+    <div class="card">
+        <h2>④ v-on:click（@click）事件</h2>
+        <p class="tip">💡 <code>@click</code> 是 <code>v-on:click</code> 的简写，用来监听 DOM 事件。</p>
+        <p>点击次数：{{ count }}</p>
+        <button @click="count++">点我 +1（直接在模板里写表达式）</button>
+        <button @click="addCount(5)">点我 +5（调用方法）</button>
+    </div>
+
+    <!-- =============== 知识点 5：条件渲染 =============== -->
+    <div class="card">
+        <h2>⑤ v-if 条件渲染</h2>
+        <p class="tip">💡 <code>v-if</code> 为 true 才渲染元素，false 则直接从 DOM 中移除。</p>
+        <button @click="show = !show">切换显示 / 隐藏</button>
+        <p v-if="show">✅ 当前是显示状态（v-if 控制）</p>
+        <p v-else>❌ 当前被 v-if 隐藏了</p>
+    </div>
+
+    <!-- =============== 知识点 6：列表渲染 =============== -->
+    <div class="card">
+        <h2>⑥ v-for 列表渲染</h2>
+        <p class="tip">💡 <code>v-for</code> 遍历数组渲染列表，记得写 <code>:key</code>（唯一标识，帮助 Vue 高效更新）。</p>
+        <ul>
+            <li v-for="(tech, index) in techStack" :key="index">
+                {{ index + 1 }}. {{ tech }} —— 长度：{{ tech.length }}
+            </li>
+        </ul>
+    </div>
+
+    <!-- =============== 知识点 7：属性绑定 =============== -->
+    <div class="card">
+        <h2>⑦ v-bind（:）属性绑定</h2>
+        <p class="tip">💡 <code>:href</code> 是 <code>v-bind:href</code> 的简写，把「HTML 属性」和「数据」绑定起来。</p>
+        <p>动态属性：<code>v-bind</code> 简写为 <code>:</code></p>
+        <a :href="link" target="_blank" style="color:#42b983;">点击访问 {{ link }}</a>
+    </div>
+
+    </div>
+<script>
+        // ============ Vue 2 的创建方式 ============
+        // new Vue({ el: '#app', data: {...} })
+        // 对比 Vue 3：Vue.createApp({...}).mount('#app')
+
+        // 在 Vue 2 中，data 可以写对象，但推荐写成函数（每个实例独立数据）
+        var app = new Vue({
+            el: '#app',        // el：告诉 Vue 去接管页面中哪个元素
+            data: {            // data：数据对象，模板里可以直接用
+                message: 'Hello Vue!',
+                htmlMessage: '<strong style="color:#42b983;">我是 v-html 渲染的粗体 HTML</strong>',
+                count: 0,
+                show: true,
+                link: 'https://cn.vuejs.org',
+                techStack: ['HTML', 'CSS', 'JavaScript', 'Vue 2']
+            },
+            methods: {         // methods：方法集合，模板里可以通过事件调用
+                addCount: function (n) {
+                    this.count += n;   // 注意：在 methods 里访问 data 要用 this.xxx
+                }
+            }
+        });
+    </script>
+</body>
+</html>

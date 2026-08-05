@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 6. 事件处理 v-on</title>
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-box { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; }
+        .lyric { font-size: 18px; cursor: help; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .log-box { background: #282c34; color: #98c379; padding: 12px; border-radius: 8px; font-family: Consolas, monospace; min-height: 50px; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 v-on 是干什么的？</h2>
+        <p class="tip">💡 <code>v-on</code> = 监听 DOM 事件，触发时执行对应逻辑。<br>
+        &nbsp;&nbsp;• 完整写法：<code>v-on:click="方法"</code><br>
+        &nbsp;&nbsp;• 简写：<code>@click="方法"</code>（开发中 99% 用简写）<br>
+        &nbsp;&nbsp;• 事件方法写在 <code>methods</code> 选项里，用 <code>this.xxx</code> 访问数据</p>
+    </div>
+
+    <!-- =============== 知识点 1：点击事件 =============== -->
+    <div class="card">
+        <h2>① 点击事件：反转字符串</h2>
+        <div class="demo-box">
+            <p v-bind:title="descript" class="lyric">🎵 你还要我怎样 要怎样，你突然来的短信就够我悲伤</p>
+            <button v-on:click="reverseMessage">{{ message }}</button>
+            <p class="tip">💡 每次点击按钮，都会把 <code>message</code> 反转（"你是年少的欢喜" → "喜欢的少年是你是你"）。<br>
+            注意鼠标悬停歌词时弹出的提示，它来自 <code>v-bind:title</code>（上一课的内容，这里配合使用）。</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#7f848e">// 完整写法 v-on:click</span>
+&lt;button <span style="color:#e06c75">v-on:click</span>="reverseMessage"&gt;{{ message }}&lt;/button&gt;
+
+<span style="color:#7f848e">// 简写 @click（等价，推荐）</span>
+&lt;button <span style="color:#e06c75">@click</span>="reverseMessage"&gt;{{ message }}&lt;/button&gt;</pre>
+    </div>
+
+    <!-- =============== 知识点 2：事件传参 =============== -->
+    <div class="card">
+        <h2>② 事件传参 + 访问原生事件对象</h2>
+        <div class="demo-box">
+            <p>当前计数：<strong>{{ count }}</strong></p>
+            <button @click="addCount(3)">调用方法并传参 +3</button>
+            <button @click="addCount(5)">调用方法并传参 +5</button>
+            <p>最近一次点击的坐标：{{ lastClickInfo }}</p>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#7f848e">// $event 代表原生 DOM 事件对象（注意顺序：先普通参数，再 $event）</span>
+&lt;button <span style="color:#e06c75">@click</span>="addCount(3, $event)"&gt;+3&lt;/button&gt;
+
+<span style="color:#c678dd">methods</span>: {
+    addCount: function (n, event) {
+        this.count += n;
+        this.lastClickInfo = event.clientX + ', ' + event.clientY;
+    }
+}</pre>
+    </div>
+
+    <!-- =============== 知识点 3：修饰符 =============== -->
+    <div class="card">
+        <h2>③ 常用修饰符：.prevent / .stop / .enter</h2>
+        <div class="demo-box">
+            <p>① <code>.prevent</code> 阻止默认行为（表单不刷新）：</p>
+            <form @submit.prevent="handleSubmit">
+                <input v-model="formName" placeholder="输入名字后点提交">
+                <button type="submit">提交（页面不会刷新）</button>
+            </form>
+            <p>最后提交的名字：<strong>{{ submittedName }}</strong></p>
+
+            <p>② <code>.enter</code> 按键修饰符（按回车触发）：</p>
+            <input @keyup.enter="enterMsg = '你按了回车！'" placeholder="在这里按回车试试" style="width:280px;">
+            <p>{{ enterMsg }}</p>
+
+            <p>③ <code>.stop</code> 阻止冒泡（点内层不会触发外层）：</p>
+            <div @click="outerClick" style="background:#e3f2fd;padding:14px;border-radius:8px;display:inline-block;">
+                🟦 外层 div（点击会记录）
+                <button @click.stop="innerClick">🟩 内层按钮（.stop 阻止冒泡）</button>
+            </div>
+            <p>事件日志：</p>
+            <div class="log-box">
+                <div v-for="(log, i) in eventLogs" :key="i">{{ log }}</div>
+                <span v-if="eventLogs.length === 0">（还没有事件发生）</span>
+            </div>
+        </div>
+    </div>
+
+    </div>
+<script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                descript: "薛之谦的歌词，v-bind 绑定的是 DOM 元素的属性",
+                message: "你是年少的欢喜",
+                count: 0,
+                lastClickInfo: "（还没点击过）",
+                formName: "",
+                submittedName: "（还没提交）",
+                enterMsg: "",
+                eventLogs: []
+            },
+            methods: {
+                // ① 反转字符串
+                reverseMessage: function () {
+                    this.message = this.message.split('').reverse().join('');
+                },
+                // ② 传参 + 原生事件对象
+                addCount: function (n, event) {
+                    this.count += n;
+                    this.lastClickInfo = event.clientX + ', ' + event.clientY;
+                },
+                // ③ .prevent 表单提交
+                handleSubmit: function () {
+                    this.submittedName = this.formName || '匿名用户';
+                },
+                // ③ .stop 冒泡演示
+                outerClick: function () {
+                    this.eventLogs.unshift('🟦 触发了外层 div 的 click');
+                },
+                innerClick: function () {
+                    this.eventLogs.unshift('🟩 触发了内层按钮的 click（未冒泡到外层）');
+                    if (this.eventLogs.length > 8) this.eventLogs.pop();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

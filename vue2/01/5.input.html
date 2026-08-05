@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 5. 表单输入绑定 v-model</title>
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        input[type="text"], textarea, select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .demo-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .demo-box { flex: 1; min-width: 280px; border: 2px dashed #42b983; border-radius: 10px; padding: 16px; }
+        .value-display { background: #f1f3f5; padding: 4px 10px; border-radius: 6px; display: inline-block; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎯 v-model 是什么？</h2>
+        <p class="tip">💡 <code>v-model</code> = <strong>双向绑定</strong>：<br>
+        &nbsp;&nbsp;• 数据变化 → 输入框内容自动变化（数据驱动视图）<br>
+        &nbsp;&nbsp;• 用户输入 → 数据自动更新（视图驱动数据）<br>
+        &nbsp;&nbsp;• 本质是语法糖：<code>:value="xxx"</code> + <code>@input="xxx = $event.target.value"</code><br>
+        &nbsp;&nbsp;• 不同表单元素的绑定值类型不同（见下方各示例）</p>
+    </div>
+
+    <div class="card" id="input">
+        <h2>① 文本输入框（input / textarea）</h2>
+        <div class="demo-box">
+            <p><input type="text" v-model="message" placeholder="输入点什么..."></p>
+            <p><textarea v-model="longText" rows="2" cols="30" placeholder="多行文本"></textarea></p>
+            <p>单行内容：<span class="value-display">{{ message }}</span></p>
+            <p>多行内容：<span class="value-display">{{ longText }}</span></p>
+        </div>
+    </div>
+
+    <div class="card" id="checked">
+        <h2>② 复选框（checkbox）</h2>
+        <div class="demo-row">
+            <div class="demo-box">
+                <p>单个复选框（绑定布尔值）：</p>
+                <input type="checkbox" v-model="isChecked"> <span>是否勾选：<span class="value-display">{{ isChecked }}</span></span>
+            </div>
+            <div class="demo-box">
+                <p>复选框组（绑定数组）：</p>
+                <input type="checkbox" id="jack" value="Jack" v-model="checkedNames">
+                <label for="jack">Jack</label>
+                <input type="checkbox" id="john" value="John" v-model="checkedNames">
+                <label for="john">John</label>
+                <input type="checkbox" id="mike" value="Mike" v-model="checkedNames">
+                <label for="mike">Mike</label>
+                <p>已选：<span class="value-display">{{ checkedNames }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="radio">
+        <h2>③ 单选按钮（radio）</h2>
+        <div class="demo-box">
+            <input type="radio" id="one" value="One" v-model="picked">
+            <label for="one">One</label>
+            <input type="radio" id="two" value="Two" v-model="picked">
+            <label for="two">Two</label>
+            <input type="radio" id="three" value="Three" v-model="picked">
+            <label for="three">Three</label>
+            <p>选中：<span class="value-display">{{ picked }}</span></p>
+        </div>
+    </div>
+
+    <div class="card" id="selectd">
+        <h2>④ 下拉选择框（select）</h2>
+        <div class="demo-row">
+            <div class="demo-box">
+                <p>单选（绑定字符串）：</p>
+                <select v-model="selected">
+                    <option disabled value="">请选择</option>
+                    <option>A</option>
+                    <option>B</option>
+                    <option>C</option>
+                </select>
+                <p>选中：<span class="value-display">{{ selected }}</span></p>
+            </div>
+            <div class="demo-box">
+                <p>多选（加 multiple，绑定数组）：</p>
+                <select v-model="multiSelected" multiple style="width:80px;height:80px;">
+                    <option>A</option>
+                    <option>B</option>
+                    <option>C</option>
+                    <option>D</option>
+                </select>
+                <p>选中：<span class="value-display">{{ multiSelected }}</span></p>
+                <p class="count">💡 按住 Ctrl 可多选</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>⑤ 修饰符：.number / .trim / .lazy</h2>
+        <div class="demo-box">
+            <p>
+                <code>v-model.number</code>（自动转数字）：
+                <input type="number" v-model.number="age" placeholder="输入数字">
+                <span>类型：<span class="value-display">{{ typeof age }}</span></span>
+            </p>
+            <p>
+                <code>v-model.trim</code>（去除首尾空格）：
+                <input type="text" v-model.trim="trimText" placeholder="首尾空格会被去掉">
+                <span>值：<span class="value-display">[{{ trimText }}]</span></span>
+            </p>
+            <p>
+                <code>v-model.lazy</code>（改为 change 事件触发，光标离开才更新）：
+                <input type="text" v-model.lazy="lazyText" placeholder="输入后点外面才更新">
+                <span>值：<span class="value-display">{{ lazyText }}</span></span>
+            </p>
+        </div>
+        <div class="warn">
+            ⚠️ <strong>初始值类型很重要</strong>：<br>
+            &nbsp;&nbsp;• 单选/多选 select、多选框组 → data 里初始化为 <code>[]</code>（数组）<br>
+            &nbsp;&nbsp;• 单选 radio、单个 checkbox、普通 input → 初始化为字符串 / 布尔值<br>
+            &nbsp;&nbsp;• 否则界面可能不会按预期初始化（比如 radio 初始是数组会选不中）
+        </div>
+    </div>
+
+    <script>
+        // 注意：这是 5 个独立的小应用，每个挂载到自己的 DOM 节点
+        // 之所以分开，是为了演示「一个页面可以有多个 Vue 实例」（Vue 3 中更推荐用一个根实例）
+
+        // ① 输入框
+        var inputV = new Vue({
+            el: "#input",
+            data: {
+                message: "来呀，快活呀",
+                longText: "多行文本内容"
+            }
+        });
+
+        // ② 复选框
+        var checkedV = new Vue({
+            el: "#checked",
+            data: {
+                isChecked: false,        // 单个复选框 → 布尔值
+                checkedNames: []         // 复选框组 → 数组（存选中的 value）
+            }
+        });
+
+        // ③ 单选按钮
+        var radioV = new Vue({
+            el: "#radio",
+            data: {
+                picked: "One"            // 单选 → 字符串（修复：原来初始化为数组会选不中）
+            }
+        });
+
+        // ④ 选择框
+        var selectdV = new Vue({
+            el: "#selectd",
+            data: {
+                selected: "",            // 单选 → 字符串
+                multiSelected: []        // 多选 → 数组
+            }
+        });
+    </script>
+</body>
+</html>

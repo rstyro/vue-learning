@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 4. 列表渲染 v-for</title>
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-box { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; }
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #dee2e6; padding: 6px 12px; text-align: left; }
+        th { background: #f8f9fa; }
+        .count { color: #6c757d; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 v-for 是干什么的？</h2>
+        <p class="tip">💡 <code>v-for</code> = 遍历数组 / 对象，为每一项渲染一个元素（列表渲染）。<br>
+        &nbsp;&nbsp;• 语法：<code>v-for="item in 数组"</code> 或 <code>v-for="(item, index) in 数组"</code><br>
+        &nbsp;&nbsp;• 对象的写法：<code>v-for="(value, key, index) in 对象"</code><br>
+        &nbsp;&nbsp;• ⚠️ 遍历列表时<b>必须写 :key</b>（唯一标识，帮助 Vue 精准复用和更新 DOM）</p>
+    </div>
+
+    <!-- =============== 知识点 1：遍历数组 =============== -->
+    <div class="card">
+        <h2>① 遍历数组（带索引）：人生各年龄段的雅称</h2>
+        <div class="demo-box">
+            <ul style="column-count:2;">
+                <li v-for="(item, index) in items" :key="index">
+                    {{ index + 1 }}. {{ item }}
+                </li>
+            </ul>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+&lt;li <span style="color:#e06c75">v-for</span>="(item, index) in items" :key="index"&gt;
+    {{ index + 1 }}. {{ item }}
+&lt;/li&gt;</pre>
+    </div>
+
+    <!-- =============== 知识点 2：遍历对象数组 =============== -->
+    <div class="card">
+        <h2>② 遍历对象数组：年龄雅称对照表</h2>
+        <div class="demo-box">
+            <table>
+                <tr>
+                    <th>序号</th><th>年龄</th><th>雅称</th>
+                </tr>
+                <tr v-for="(item, index) in obj" :key="index">
+                    <td>{{ index + 1 }}</td>
+                    <td>{{ item.age }}</td>
+                    <td>{{ item.alias }}</td>
+                </tr>
+            </table>
+        </div>
+        <p class="count">当前共 {{ obj.length }} 条记录（数组末尾的「new add」是创建 Vue 实例后动态 push 进去的）</p>
+    </div>
+
+    <!-- =============== 知识点 3：遍历对象本身 =============== -->
+    <div class="card">
+        <h2>③ 遍历对象本身（value / key / index）</h2>
+        <div class="demo-box">
+            <ul>
+                <li v-for="(value, key, index) in person" :key="key">
+                    {{ index }}. {{ key }} = {{ value }}
+                </li>
+            </ul>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+&lt;li <span style="color:#e06c75">v-for</span>="(value, key, index) in person" :key="key"&gt;...&lt;/li&gt;</pre>
+    </div>
+
+    <!-- =============== 知识点 4：动态增删 =============== -->
+    <div class="card">
+        <h2>④ 动态增删列表（响应式数组方法）</h2>
+        <div class="demo-box">
+            <ul>
+                <li v-for="(item, i) in dynamicList" :key="item.id">
+                    {{ item.name }}
+                    <button @click="removeItem(i)" style="font-size:12px;padding:2px 10px;">删除</button>
+                </li>
+            </ul>
+            <button @click="addItem">添加一个随机项</button>
+            <button @click="sortItems">排序（reverse 方法）</button>
+        </div>
+        <div class="warn">
+            ⚠️ <strong>响应式数组方法</strong>：Vue 2 中能触发更新的方法有 7 个：<br>
+            <code>push</code> / <code>pop</code> / <code>shift</code> / <code>unshift</code> / <code>splice</code> / <code>sort</code> / <code>reverse</code><br>
+            &nbsp;&nbsp;• 直接用下标改 <code>arr[0] = xxx</code> <b>不会触发更新</b>（要用 <code>Vue.set</code>）<br>
+            &nbsp;&nbsp;• 直接改 length <b>也不会触发更新</b>
+        </div>
+    </div>
+
+    <!-- =============== 知识点 5：v-for + v-if =============== -->
+    <div class="card">
+        <h2>⑤ v-for 与 v-if 同时使用（⚠️ 注意优先级）</h2>
+        <div class="demo-box">
+            <p>只显示名字长度 &gt;= 3 的水果：</p>
+            <ul>
+                <li v-for="fruit in fruits" v-if="fruit.length >= 3" :key="fruit">
+                    {{ fruit }}（长度 {{ fruit.length }}）
+                </li>
+            </ul>
+        </div>
+        <p class="tip">💡 Vue 2 中 <code>v-for</code> 优先级高于 <code>v-if</code>（先循环再判断），性能略差。<br>
+        Vue 3 中 <code>v-if</code> 优先级高于 <code>v-for</code>（不能再访问 item），需注意写法差异。<br>
+        ✅ 最佳实践：用 computed 先过滤，再 v-for 渲染。</p>
+    </div>
+
+    </div>
+<script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                // ① 数组
+                items: ["襁褓","孩提","龆年","舞勺之年","舞象之年","而立之年","不惑之年","知命之年","杖乡之年","致事之年","耄耋之年","鲐背之年","不老之年"],
+                // ② 对象数组
+                obj: [
+                    {age:"不到周岁", alias:"襁褓"},
+                    {age:"2-3岁", alias:"孩提"},
+                    {age:"8岁", alias:"龆年"},
+                    {age:"13~15岁", alias:"舞勺之年"},
+                    {age:"15~20岁", alias:"舞象之年"},
+                    {age:"30岁", alias:"而立之年"},
+                    {age:"40岁", alias:"不惑之年"},
+                    {age:"50岁", alias:"知命之年"},
+                    {age:"60岁", alias:"杖乡之年"},
+                    {age:"70岁", alias:"致事之年"},
+                    {age:"80岁", alias:"耄耋之年"},
+                    {age:"90岁", alias:"鲐背之年"},
+                    {age:"想死都死不了", alias:"不老之年"}
+                ],
+                // ③ 对象本身
+                person: { name: '张三', age: 18, city: '深圳' },
+                // ④ 动态列表
+                dynamicList: [
+                    { id: 1, name: '第一个' },
+                    { id: 2, name: '第二个' },
+                    { id: 3, name: '第三个' }
+                ],
+                // ⑤ 水果
+                fruits: ['苹果', '香蕉', '橙子', '西瓜']
+            },
+            methods: {
+                removeItem: function (i) {
+                    this.dynamicList.splice(i, 1);   // 用 splice（响应式方法）删除
+                },
+                addItem: function () {
+                    this.dynamicList.push({           // 用 push（响应式方法）添加
+                        id: Date.now(),
+                        name: '新项' + Math.floor(Math.random() * 100)
+                    });
+                },
+                sortItems: function () {
+                    this.dynamicList.reverse();       // reverse 也是响应式方法
+                }
+            }
+        });
+
+        // 演示：创建实例后动态添加数据（观察「② 对象数组」表格最后一行）
+        app.obj.push({ age: "这是新添加的", alias: "new add" });
+    </script>
+</body>
+</html>

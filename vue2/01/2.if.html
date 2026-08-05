@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 2. 条件渲染 v-if / v-else-if / v-else</title>
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        .warn { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-box { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; }
+        ul { padding-left: 20px; }
+        li { margin: 6px 0; }
+        .fruit-banana { background: #fff3cd; padding: 4px 8px; border-radius: 4px; }
+        .fruit-tomato { background: #fce4ec; padding: 4px 8px; border-radius: 4px; text-decoration: line-through; color: #999; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <!-- =============== 知识点 1：v-if 基础 =============== -->
+    <div class="card">
+        <h2>① v-if 基础：为 true 才渲染</h2>
+        <p class="tip">💡 <code>v-if</code> 根据布尔值决定元素<b>是否存在于 DOM 中</b>：<br>
+        &nbsp;&nbsp;• 值为 true → 渲染元素<br>
+        &nbsp;&nbsp;• 值为 false → 元素直接从 DOM 移除（不是隐藏，是删除！）</p>
+        <div class="demo-box">
+            <ul>
+                <li>苹果（普通项，永远显示）</li>
+                <li>橘子（普通项，永远显示）</li>
+                <!-- v-if 为 true，香蕉显示 -->
+                <li class="fruit-banana" v-if="isFruitByBanana">香蕉（v-if="isFruitByBanana"，为 true）</li>
+                <!-- v-if 为 false，西红柿不显示 -->
+                <li class="fruit-tomato" v-if="isFruitByTomato">西红柿（v-if="isFruitByTomato"，为 false 被移除）</li>
+            </ul>
+        </div>
+        <button @click="isFruitByTomato = !isFruitByTomato">切换「西红柿」显示（当前：{{ isFruitByTomato }}）</button>
+        <p class="tip">💡 观察：点上面的按钮，西红柿这行是<b>瞬间消失/出现</b>——因为 v-if 是「增删元素」，不是 CSS 隐藏。</p>
+    </div>
+
+    <!-- =============== 知识点 2：v-else-if / v-else =============== -->
+    <div class="card">
+        <h2>② v-else-if / v-else：多分支判断（像 if/else if/else）</h2>
+        <p class="tip">💡 三个指令必须<b>紧挨着</b>使用，中间不能插入其它元素：<br>
+        <code>v-if</code> → <code>v-else-if</code> → <code>v-else</code></p>
+        <div class="demo-box">
+            <p>当前成绩：<strong>{{ score }}</strong> 分</p>
+            <p v-if="score >= 90" style="color:#e83e8c;">🅰 优秀！成绩 >= 90</p>
+            <p v-else-if="score >= 60" style="color:#2c7be5;">🅱 及格！成绩 60 ~ 89</p>
+            <p v-else style="color:#6c757d;">❌ 不及格！成绩 < 60</p>
+            <button @click="score = 95">设为 95 分</button>
+            <button @click="score = 75">设为 75 分</button>
+            <button @click="score = 45">设为 45 分</button>
+        </div>
+    </div>
+
+    <!-- =============== 知识点 3：v-if vs v-show =============== -->
+    <div class="card">
+        <h2>③ v-if vs v-show：什么时候用哪个？</h2>
+        <div class="demo-box">
+            <p><button @click="ifShow = !ifShow">切换 v-if 元素（当前：{{ ifShow }}）</button></p>
+            <p v-if="ifShow">✅ v-if 元素：为 false 时整个从 DOM 删除</p>
+            <p><button @click="showShow = !showShow">切换 v-show 元素（当前：{{ showShow }}）</button></p>
+            <p v-show="showShow">✅ v-show 元素：为 false 时只是 display:none，元素还在 DOM 里</p>
+        </div>
+        <div class="warn">
+            ⚠️ <strong>选择建议</strong>：<br>
+            &nbsp;&nbsp;• 频繁切换 → 用 <code>v-show</code>（只是切换 CSS，性能好）<br>
+            &nbsp;&nbsp;• 几乎不变 / 有 else 分支 → 用 <code>v-if</code>（初始不渲染，省资源）<br>
+            &nbsp;&nbsp;💡 验证方法：按 F12 打开开发者工具，在「Elements」面板里对比两种元素的显示/隐藏方式。
+        </div>
+    </div>
+
+    </div>
+<script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                // v-if 演示数据
+                isFruitByBanana: true,
+                isFruitByTomato: false,
+                // v-else-if 演示
+                score: 75,
+                // v-if vs v-show 对比
+                ifShow: true,
+                showShow: true
+            }
+        });
+    </script>
+</body>
+</html>

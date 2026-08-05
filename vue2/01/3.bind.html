@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2 - 3. 属性绑定 v-bind</title>
+    <script src="../lib/vue.min.js"></script>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 20px; background: #f8f9fa; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        h2 { color: #42b983; border-bottom: 2px solid #42b983; padding-bottom: 8px; }
+        .tip { background: #e8f5e9; border-left: 4px solid #42b983; padding: 10px; border-radius: 4px; }
+        code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #e83e8c; }
+        button { background: #42b983; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px; }
+        .demo-box { border: 2px dashed #42b983; border-radius: 10px; padding: 16px; }
+        .highlight { background: #fff3cd; border: 2px solid #ffc107; }
+        .hint-text { color: #6c757d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="card">
+        <h2>🎯 v-bind 是干什么的？</h2>
+        <p class="tip">💡 <code>v-bind</code> = 把 <b>HTML 元素的属性</b> 与 <b>Vue 数据</b> 绑定起来。<br>
+        &nbsp;&nbsp;• 数据一变，属性自动更新 —— 这就是「声明式渲染」在属性上的体现。<br>
+        &nbsp;&nbsp;• 完整写法：<code>v-bind:属性名="数据"</code><br>
+        &nbsp;&nbsp;• 简写：<code>:属性名="数据"</code>（开发中 99% 用简写）</p>
+    </div>
+
+    <!-- =============== 知识点 1：绑定 title 属性 =============== -->
+    <div class="card">
+        <h2>① 绑定 title 属性（鼠标悬停提示）</h2>
+        <div class="demo-box">
+            <!-- 完整写法 v-bind:title -->
+            <p v-bind:title="message" style="font-size:18px;">
+                🎵 你还要我怎样 要怎样，你突然来的短信就够我悲伤
+            </p>
+            <p class="hint-text">🖱 把鼠标悬停在上面这句话上，会弹出提示气泡 —— 提示内容来自 Vue 数据</p>
+            <p>绑定内容（data.message）：<code>{{ message }}</code></p>
+            <button @click="message = '被按钮改过的提示内容！'">点击修改提示内容</button>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+&lt;p <span style="color:#e06c75">v-bind:title</span>="message"&gt;文字内容&lt;/p&gt;
+<span style="color:#7f848e">&lt;!-- 简写形式（等价） --&gt;</span>
+&lt;p <span style="color:#e06c75">:title</span>="message"&gt;文字内容&lt;/p&gt;</pre>
+    </div>
+
+    <!-- =============== 知识点 2：绑定 class =============== -->
+    <div class="card">
+        <h2>② 绑定 class（对象语法：有则加，无则不加）</h2>
+        <div class="demo-box">
+            <div :class="{ highlight: isHighlight }" style="padding:10px;border-radius:6px;">
+                isHighlight 为 true 时，这一行会有黄色高亮背景（对象语法）
+            </div>
+            <p>当前 isHighlight：<strong>{{ isHighlight }}</strong></p>
+            <button @click="isHighlight = !isHighlight">切换高亮</button>
+        </div>
+        <pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:8px;line-height:1.6;">
+<span style="color:#7f848e">// 对象语法：键是类名，值是布尔（true 加类，false 不加）</span>
+&lt;div <span style="color:#e06c75">:class</span>="{ highlight: isHighlight }"&gt;...&lt;/div&gt;
+
+<span style="color:#7f848e">// 数组语法：直接放多个类名</span>
+&lt;div <span style="color:#e06c75">:class</span>="['base-style', isActive ? 'active' : '']"&gt;...&lt;/div&gt;</pre>
+    </div>
+
+    <!-- =============== 知识点 3：绑定 style =============== -->
+    <div class="card">
+        <h2>③ 绑定 style（对象语法：动态样式）</h2>
+        <div class="demo-box">
+            <div :style="{ color: textColor, fontSize: fontSize + 'px', fontWeight: isBold ? 'bold' : 'normal' }">
+                文字颜色、大小、粗细全部是动态绑定的
+            </div>
+            <p>当前颜色：{{ textColor }}，字号：{{ fontSize }}px，加粗：{{ isBold }}</p>
+            <button @click="textColor = textColor === 'red' ? '#42b983' : 'red'">切换颜色</button>
+            <button @click="fontSize += 2">字号 +2</button>
+            <button @click="isBold = !isBold">切换加粗</button>
+        </div>
+        <p class="tip">💡 注意：style 绑定的属性名用「驼峰命名」（fontSize），因为它是 JS 对象。</p>
+    </div>
+
+    <!-- =============== 知识点 4：绑定布尔属性 =============== -->
+    <div class="card">
+        <h2>④ 绑定布尔属性（disabled）</h2>
+        <div class="demo-box">
+            <button :disabled="isDisabled">
+                我是否可点击？现在是 {{ isDisabled ? '🚫 禁用' : '✅ 可用' }}
+            </button>
+            <button @click="isDisabled = !isDisabled">切换禁用状态</button>
+            <p class="hint-text">💡 disabled 是布尔属性：绑定为 false 时，Vue 会自动移除该属性，按钮恢复可点。</p>
+        </div>
+    </div>
+
+    </div>
+<script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                // ① title 属性
+                message: "薛之谦的歌词，v-bind 绑定的是 DOM 元素的属性。",
+                // ② class 绑定
+                isHighlight: false,
+                // ③ style 绑定
+                textColor: 'red',
+                fontSize: 18,
+                isBold: false,
+                // ④ 布尔属性
+                isDisabled: false
+            }
+        });
+    </script>
+</body>
+</html>
